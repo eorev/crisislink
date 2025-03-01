@@ -35,15 +35,15 @@ const ResourceLevelCard = ({ resources }: ResourceLevelCardProps) => {
                   )}
                 </span>
               </div>
-              <div className="bg-gray-50 rounded-full h-2 shadow-neumorphic-inset overflow-hidden">
+              <div className="bg-gray-50 rounded-full h-4 shadow-neumorphic-inset overflow-hidden">
                 <Progress 
                   value={resource.level} 
-                  className={`h-2 ${resource.alert ? 'bg-red-100' : 'bg-gray-100'}`} 
+                  className="h-4 border-0 bg-gray-200 shadow-inner" 
                   indicatorClassName={`${
                     resource.level > 70 ? 'bg-emerald-500' : 
                     resource.level > 40 ? 'bg-yellow-500' : 
                     'bg-red-500'
-                  }`}
+                  } shadow-neumorphic-inset rounded-full`}
                 />
               </div>
               {resource.alert && (
