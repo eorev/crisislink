@@ -63,7 +63,7 @@ export const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 // Function to analyze disaster data and generate predictions
 export async function analyzePredictions(
   historicalData: HistoricalDisasterData[],
-  forecastData: WeatherForecastData[],
+  
   userZipCode?: string
 ): Promise<PredictionResponse> {
   try {
@@ -99,8 +99,7 @@ export async function analyzePredictions(
       Historical Disaster Data:
       ${JSON.stringify(historicalData, null, 2)}
       
-      Weather Forecast Data:
-      ${JSON.stringify(forecastData, null, 2)}
+      
       
       Based on this data, provide a structured analysis of potential disaster risks in the following JSON format:
       {

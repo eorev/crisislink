@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle, AlertCircle, ThermometerSun, Wind, Droplets, RefreshCw, MapPin } from 'lucide-react';
 import { DisasterPrediction, PredictionResponse } from '@/lib/ai/gemini';
-import { getHistoricalDisasterData, getWeatherForecastData } from '@/lib/services/disasterDataService';
+import { getHistoricalDisasterData } from '@/lib/services/disasterDataService';
 import { analyzePredictions } from '@/lib/ai/gemini';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -19,14 +19,14 @@ const DisasterPredictions = () => {
     const { toast } = useToast();
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-    const fetchPredictions = async () => {
+    const fetchPredictions = useCallback(async () => {
         try {
             setIsLoading(true);
             setError(null);
 
             // Fetch historical and forecast data
             const historicalData = await getHistoricalDisasterData();
-            const forecastData = await getWeatherForecastData();
+            // const forecastData = await getWeatherForecastData();
 
             // Use area_code as zip code
             const userZipCode = profile?.area_code;
@@ -35,9 +35,10 @@ const DisasterPredictions = () => {
             // Analyze data with Gemini, passing the user's zip code if available
             const predictionResults = await analyzePredictions(
                 historicalData,
-                forecastData,
                 userZipCode
             );
+
+            console.log('Prediction results:', predictionResults);
 
             setPredictions(predictionResults);
             setLastUpdated(new Date());
@@ -73,11 +74,11 @@ const DisasterPredictions = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [profile?.area_code, toast]); // Add dependencies that the function uses
 
     useEffect(() => {
         fetchPredictions();
-    }, [profile?.area_code]); // Re-fetch when zip code changes
+    }, [fetchPredictions]); // Now fetchPredictions is a dependency
 
     const handleRefresh = () => {
         fetchPredictions();
