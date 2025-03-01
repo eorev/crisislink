@@ -1,4 +1,3 @@
-
 import { supabase } from './client';
 import { getCurrentUser } from './auth';
 import type { Resource } from './types';
@@ -52,21 +51,38 @@ export const createResource = async (resource: Omit<Resource, 'id' | 'created_at
 };
 
 export const updateResource = async (id: number, updates: Partial<Omit<Resource, 'id' | 'created_at' | 'user_id'>>) => {
-  const { data, error } = await supabase
-    .from('resources')
-    .update({
-      ...updates,
-      last_updated: new Date().toISOString()
-    })
-    .eq('id', id)
-    .select()
-    .single();
-  
-  if (error) {
+  try {
+    // First check if the resource exists
+    const { data: existingResource, error: checkError } = await supabase
+      .from('resources')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (checkError) {
+      throw new Error(`Resource not found: ${checkError.message}`);
+    }
+    
+    // Now update the resource
+    const { data, error } = await supabase
+      .from('resources')
+      .update({
+        ...updates,
+        last_updated: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      throw error;
+    }
+    
+    return data as Resource;
+  } catch (error) {
+    console.error('Error in updateResource:', error);
     throw error;
   }
-  
-  return data as Resource;
 };
 
 export const deleteResource = async (id: number) => {
