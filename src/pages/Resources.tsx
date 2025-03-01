@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -5,8 +6,9 @@ import { BarChart2 } from 'lucide-react';
 import ResourceCard from '@/components/resources/ResourceCard';
 import ResourceAnalytics from '@/components/resources/ResourceAnalytics';
 import { createResourceCategoryData } from '@/components/resources/ResourceData';
-import { getResources } from '@/lib/supabase/resources';
+import { getResources, createResource } from '@/lib/supabase/resources';
 import { Resource } from '@/lib/supabase/types';
+import { toast } from 'sonner';
 
 const Resources = () => {
   const analyticsRef = useRef<HTMLDivElement>(null);
@@ -21,10 +23,35 @@ const Resources = () => {
   const fetchResources = async () => {
     setIsLoading(true);
     try {
-      const dbResources = await getResources();
+      let dbResources = await getResources();
+      
+      // If no resources are found, create initial resources
+      if (dbResources.length === 0) {
+        toast.info('Initializing resource database...');
+        
+        // Create initial resources in database
+        for (const resource of resources) {
+          try {
+            await createResource({
+              name: resource.name,
+              category: resource.name.toLowerCase(),
+              total_amount: resource.totalAmount,
+              unit: resource.unit,
+              shelter_id: null,
+              alert_threshold: Math.floor(resource.totalAmount * 0.2)
+            });
+          } catch (err) {
+            console.error(`Error creating initial resource ${resource.name}:`, err);
+          }
+        }
+        
+        // Fetch again after creating
+        dbResources = await getResources();
+      }
       
       const updatedResources = resources.map(resource => {
         const dbResource = dbResources.find(r => 
+          r.name.toLowerCase() === resource.name.toLowerCase() || 
           r.name.toLowerCase().includes(resource.name.toLowerCase().split(' ')[0]));
         
         if (dbResource) {
