@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { LifeBuoy, Loader2 } from 'lucide-react';
+import { LifeBuoy, Loader2, UserPlus } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import Layout from '@/components/layout/Layout';
 import { signIn, AuthError } from '@/lib/supabase';
@@ -138,13 +139,16 @@ const Login = () => {
                 </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex justify-center">
+            <CardFooter className="flex flex-col gap-4">
               <p className="text-sm text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/register" className="font-medium text-crisisBlue-600 hover:text-crisisBlue-800">
-                  Sign up
-                </Link>
+                Don't have an account?
               </p>
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/register" className="flex items-center justify-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Create your account
+                </Link>
+              </Button>
             </CardFooter>
           </Card>
         </div>
