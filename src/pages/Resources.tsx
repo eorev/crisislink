@@ -6,10 +6,11 @@ import { BarChart2 } from 'lucide-react';
 import ResourceCard from '@/components/resources/ResourceCard';
 import ResourceAnalytics from '@/components/resources/ResourceAnalytics';
 import { createResourceCategoryData } from '@/components/resources/ResourceData';
-import { getResources, createResource } from '@/lib/supabase/resources';
+import { getResources } from '@/lib/supabase/resources';
 import { getShelters } from '@/lib/supabase/shelters';
 import { Resource, Shelter } from '@/lib/supabase/types';
 import { toast } from 'sonner';
+import { initializeShelters } from '@/lib/supabase/initialData';
 
 const Resources = () => {
   const analyticsRef = useRef<HTMLDivElement>(null);
@@ -17,9 +18,28 @@ const Resources = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [shelters, setShelters] = useState<Shelter[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
   const scrollToAnalytics = () => {
     analyticsRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const initializeDatabase = async () => {
+    try {
+      if (!initialized) {
+        toast.info("Initializing shelters database with sample data...");
+        const success = await initializeShelters();
+        if (success) {
+          toast.success("Database initialized with sample shelters and resources");
+          setInitialized(true);
+          return true;
+        }
+      }
+      return false;
+    } catch (err) {
+      console.error("Error initializing database:", err);
+      return false;
+    }
   };
 
   const fetchResources = async () => {
@@ -27,7 +47,16 @@ const Resources = () => {
     try {
       // First fetch shelters to get context
       const shelterData = await getShelters();
-      setShelters(shelterData);
+      
+      // If no shelters exist, initialize the database
+      if (shelterData.length === 0) {
+        await initializeDatabase();
+        // Fetch shelters again after initialization
+        const initializedShelters = await getShelters();
+        setShelters(initializedShelters);
+      } else {
+        setShelters(shelterData);
+      }
       
       // Then fetch resources
       let dbResources = await getResources();

@@ -3,6 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   AlertTriangle,
+  Plus,
+  Minus
 } from 'lucide-react';
 import ResourceDetailDialog from './ResourceDetailDialog';
 import ResourceActionDialog from './ResourceActionDialog';
@@ -70,7 +72,10 @@ const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
                 unit={resource.unit}
                 isAdding={true}
                 onSuccess={onResourceUpdated}
-              />
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </ResourceActionDialog>
               
               <ResourceActionDialog 
                 resourceId={resource.id}
@@ -79,7 +84,10 @@ const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
                 unit={resource.unit}
                 isAdding={false}
                 onSuccess={onResourceUpdated}
-              />
+              >
+                <Minus className="h-4 w-4 mr-1" />
+                Use
+              </ResourceActionDialog>
             </div>
             
             <ResourceDetailDialog 
