@@ -44,45 +44,6 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-
-  .dark {
-    --background: 222 25% 10%;
-    --foreground: 210 40% 98%;
-
-    --card: 222 25% 12%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 25% 12%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 205 70% 65%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 36 80% 60%;
-    --secondary-foreground: 0 0% 0%;
-
-    --muted: 217.2 32.6% 17%;
-    --muted-foreground: 215 20.2% 75%;
-
-    --accent: 217.2 32.6% 17%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 40%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17%;
-    --input: 217.2 32.6% 17%;
-    --ring: 212.7 26.8% 83.9%;
-    
-    --sidebar-background: 220 25% 15%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 205 70% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 25% 18%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 220 25% 18%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
 }
 
 @layer base {
@@ -91,7 +52,7 @@
   }
 
   body {
-    @apply bg-background text-foreground transition-colors duration-300;
+    @apply bg-background text-foreground;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
   }
 
@@ -102,7 +63,7 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border border-white/30 dark:border-gray-700/30 shadow-lg;
+    @apply bg-white/70 backdrop-blur-lg border border-white/30 shadow-lg;
   }
   
   .scrollbar-hide {
@@ -143,14 +104,14 @@
   }
   
   .dark-card {
-    @apply bg-gray-800/90 backdrop-blur-sm border border-gray-700/50 shadow-lg;
+    @apply bg-gray-100/90 backdrop-blur-sm border border-gray-200/50 shadow-lg;
   }
   
   .dark-gradient {
-    @apply bg-gradient-to-br from-gray-800 to-gray-900;
+    @apply bg-gradient-to-br from-gray-100 to-white;
   }
   
   .table-row-dark {
-    @apply hover:bg-gray-800/50 border-b border-gray-700/30;
+    @apply hover:bg-gray-100/50 border-b border-gray-200/30;
   }
 }
