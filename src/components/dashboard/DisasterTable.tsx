@@ -61,9 +61,15 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
             </tbody>
           </table>
         </div>
-        <Button asChild variant="outline" className="px-6 py-2 bg-gray-50 dark:bg-gray-800 shadow-neumorphic-sm dark:shadow-neumorphic-sm-dark hover:shadow-neumorphic-inset dark:hover:shadow-neumorphic-inset-dark transition-shadow border-0 font-medium">
-          <Link to="/predictions">View AI Predictions</Link>
-        </Button>
+        <div className="mt-4 flex justify-center">
+          <Button 
+            asChild 
+            variant="outline" 
+            className="px-6 py-2 bg-gray-50 dark:bg-gray-800 shadow-neumorphic-sm dark:shadow-neumorphic-sm-dark hover:shadow-neumorphic-inset dark:hover:shadow-neumorphic-inset-dark transition-shadow border-0 font-medium"
+          >
+            <Link to="/predictions">View AI Predictions</Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
