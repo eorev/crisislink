@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => {
     define: {
       // Make sure to stringify the values
       'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),
+      'import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY': JSON.stringify(env.VITE_GOOGLE_GENERATIVE_AI_API_KEY),
     },
   };
 });
