@@ -29,7 +29,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 bg-gray-100">
         <DashboardHeader 
           title="Disaster Management Dashboard" 
           subtitle="Real-time monitoring of shelters and resources" 
@@ -43,7 +43,7 @@ const Dashboard = () => {
             <StatsGrid stats={shelterStats} />
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
               {/* Resource Levels */}
               <ResourceLevelCard resources={resourceLevels} />
 

@@ -12,7 +12,7 @@ const DashboardHeader = ({ title, subtitle }: DashboardHeaderProps) => {
   const { toast } = useToast();
 
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+    <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 p-6 bg-gray-50 rounded-xl shadow-neumorphic">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
         <p className="mt-2 text-gray-600">{subtitle}</p>
@@ -22,7 +22,7 @@ const DashboardHeader = ({ title, subtitle }: DashboardHeaderProps) => {
         <Button 
           variant="outline" 
           size="sm" 
-          className="flex items-center"
+          className="flex items-center bg-gray-50 shadow-neumorphic-sm hover:shadow-neumorphic-inset transition-shadow border-0"
           onClick={() => {
             toast({
               title: "Report Generated",
@@ -33,7 +33,11 @@ const DashboardHeader = ({ title, subtitle }: DashboardHeaderProps) => {
         >
           Generate Report
         </Button>
-        <Button asChild size="sm" className="bg-crisisBlue-600 hover:bg-crisisBlue-700">
+        <Button 
+          asChild 
+          size="sm" 
+          className="bg-crisisBlue-600 hover:bg-crisisBlue-700 shadow-neumorphic-sm"
+        >
           <Link to="/shelters">View All Shelters</Link>
         </Button>
       </div>

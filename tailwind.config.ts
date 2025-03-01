@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -59,7 +58,7 @@ export default {
 					200: '#A7D8F0',
 					300: '#7CC1E4',
 					400: '#55A9D7',
-					500: '#3490DC', // Primary blue
+					500: '#3490DC',
 					600: '#2779BD',
 					700: '#1C64A3',
 					800: '#12517B',
@@ -71,7 +70,7 @@ export default {
 					200: '#FDE68A',
 					300: '#FCD34D',
 					400: '#FBBF24',
-					500: '#F59E0B', // Primary gold
+					500: '#F59E0B',
 					600: '#D97706',
 					700: '#B45309',
 					800: '#8E4B10',
@@ -149,6 +148,12 @@ export default {
 				'scale-in': 'scale-in 0.5s ease-out forwards',
 				'pulse-slow': 'pulse-slow 4s infinite ease-in-out',
 				'float': 'float 6s infinite ease-in-out'
+			},
+			boxShadow: {
+				'neumorphic': '8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff',
+				'neumorphic-inset': 'inset 5px 5px 10px #d1d9e6, inset -5px -5px 10px #ffffff',
+				'neumorphic-sm': '4px 4px 8px #d1d9e6, -4px -4px 8px #ffffff',
+				'neumorphic-md': '6px 6px 12px #d1d9e6, -6px -6px 12px #ffffff',
 			}
 		}
 	},

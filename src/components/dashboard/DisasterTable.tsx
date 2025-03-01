@@ -18,16 +18,16 @@ interface DisasterTableProps {
 
 const DisasterTable = ({ disasters }: DisasterTableProps) => {
   return (
-    <Card className="lg:col-span-2 animate-fade-in animation-delay-400">
+    <Card className="lg:col-span-2 animate-fade-in animation-delay-400 rounded-xl bg-gray-50 shadow-neumorphic border-0">
       <CardHeader>
         <CardTitle>Active Disasters</CardTitle>
         <CardDescription>Recent disaster events being monitored</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto p-4 rounded-lg bg-gray-50 shadow-neumorphic-inset">
           <table className="w-full">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b border-gray-200">
                 <th className="pb-3 text-left text-sm font-medium text-gray-500">Type</th>
                 <th className="pb-3 text-left text-sm font-medium text-gray-500">Location</th>
                 <th className="pb-3 text-left text-sm font-medium text-gray-500">Severity</th>
@@ -37,7 +37,7 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
             </thead>
             <tbody>
               {disasters.map((disaster, i) => (
-                <tr key={i} className="hover:bg-gray-50">
+                <tr key={i} className="hover:bg-gray-100 transition-colors">
                   <td className="py-3 text-sm">{disaster.type}</td>
                   <td className="py-3 text-sm">{disaster.location}</td>
                   <td className="py-3 text-sm">
@@ -63,7 +63,7 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
           </table>
         </div>
         <div className="flex justify-center mt-6">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="bg-gray-50 shadow-neumorphic-sm hover:shadow-neumorphic-inset transition-shadow border-0">
             <Link to="/predictions">View AI Predictions</Link>
           </Button>
         </div>
