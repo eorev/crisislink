@@ -36,7 +36,7 @@ const DashboardHeader = ({ title, subtitle }: DashboardHeaderProps) => {
         <Button 
           asChild 
           size="sm" 
-          className="bg-crisisBlue-600 hover:bg-crisisBlue-700 shadow-neumorphic-sm"
+          className="bg-gray-50 text-crisisBlue-600 hover:text-crisisBlue-700 shadow-neumorphic-sm hover:shadow-neumorphic-inset transition-shadow border-0"
         >
           <Link to="/shelters">View All Shelters</Link>
         </Button>
