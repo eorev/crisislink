@@ -1,18 +1,54 @@
-
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { BarChart2 } from 'lucide-react';
 import ResourceCard from '@/components/resources/ResourceCard';
 import ResourceAnalytics from '@/components/resources/ResourceAnalytics';
-import { resourceCategoryData } from '@/components/resources/ResourceData';
+import { createResourceCategoryData } from '@/components/resources/ResourceData';
+import { getResources } from '@/lib/supabase/resources';
+import { Resource } from '@/lib/supabase/types';
 
 const Resources = () => {
   const analyticsRef = useRef<HTMLDivElement>(null);
+  const [resources, setResources] = useState(createResourceCategoryData());
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const scrollToAnalytics = () => {
     analyticsRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const fetchResources = async () => {
+    setIsLoading(true);
+    try {
+      const dbResources = await getResources();
+      
+      const updatedResources = resources.map(resource => {
+        const dbResource = dbResources.find(r => 
+          r.name.toLowerCase().includes(resource.name.toLowerCase().split(' ')[0]));
+        
+        if (dbResource) {
+          return {
+            ...resource,
+            id: dbResource.id,
+            totalAmount: dbResource.total_amount,
+          };
+        }
+        return resource;
+      });
+      
+      setResources(updatedResources);
+    } catch (err) {
+      console.error('Error fetching resources:', err);
+      setError('Failed to load resources');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchResources();
+  }, []);
 
   return (
     <Layout>
@@ -22,20 +58,27 @@ const Resources = () => {
             <h1 className="text-3xl font-bold text-gray-900">Resource Management</h1>
             <p className="text-gray-600 mt-2">Track and distribute critical resources across shelters</p>
           </div>
-          <div className="flex gap-3">
+          <div>
             <Button variant="outline" onClick={scrollToAnalytics}>
               <BarChart2 className="h-4 w-4 mr-2" />
               View Analytics
             </Button>
-            <Button className="bg-crisisBlue-600 hover:bg-crisisBlue-700">
-              Manage Distribution
-            </Button>
           </div>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
-          {resourceCategoryData.map((resource) => (
-            <ResourceCard key={resource.id} resource={resource} />
+          {resources.map((resource) => (
+            <ResourceCard 
+              key={resource.id} 
+              resource={resource} 
+              onResourceUpdated={fetchResources}
+            />
           ))}
         </div>
 

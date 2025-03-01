@@ -1,13 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
-  PlusCircle,
-  MinusCircle,
   AlertTriangle,
-  ArrowRight,
 } from 'lucide-react';
+import ResourceDetailDialog from './ResourceDetailDialog';
+import ResourceActionDialog from './ResourceActionDialog';
 
 interface ResourceCardProps {
   resource: {
@@ -22,9 +20,10 @@ interface ResourceCardProps {
     alerts: number;
     status: string;
   };
+  onResourceUpdated: () => void;
 }
 
-const ResourceCard = ({ resource }: ResourceCardProps) => {
+const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
   return (
     <Card
       className={`border ${resource.status === 'warning'
@@ -56,11 +55,7 @@ const ResourceCard = ({ resource }: ResourceCardProps) => {
               <h3 className="text-2xl font-bold">{resource.totalAmount.toLocaleString()}</h3>
               <div className={`flex items-center ${resource.positiveChange ? 'text-emerald-600' : 'text-red-600'
                 }`}>
-                {resource.positiveChange
-                  ? <PlusCircle className="h-3 w-3 mr-1" />
-                  : <MinusCircle className="h-3 w-3 mr-1" />
-                }
-                <span className="text-sm font-medium">{resource.recentChange} {resource.unit}</span>
+                <span className="text-sm font-medium">{resource.positiveChange ? '+' : '-'}{resource.recentChange} {resource.unit}</span>
               </div>
             </div>
             <p className="text-sm text-gray-600">Total {resource.unit} available</p>
@@ -68,19 +63,28 @@ const ResourceCard = ({ resource }: ResourceCardProps) => {
 
           <div className="pt-4 pb-2 flex justify-between items-center">
             <div className="space-x-2">
-              <Button variant="outline" size="sm">
-                <PlusCircle className="h-4 w-4 mr-1" />
-                Add
-              </Button>
-              <Button variant="outline" size="sm">
-                <MinusCircle className="h-4 w-4 mr-1" />
-                Use
-              </Button>
+              <ResourceActionDialog 
+                resourceId={resource.id}
+                resourceName={resource.name}
+                totalAmount={resource.totalAmount}
+                unit={resource.unit}
+                isAdding={true}
+                onSuccess={onResourceUpdated}
+              />
+              
+              <ResourceActionDialog 
+                resourceId={resource.id}
+                resourceName={resource.name}
+                totalAmount={resource.totalAmount}
+                unit={resource.unit}
+                isAdding={false}
+                onSuccess={onResourceUpdated}
+              />
             </div>
-            <Button variant="ghost" size="sm" className="text-crisisBlue-600">
-              Details
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
+            
+            <ResourceDetailDialog 
+              resource={resource}
+            />
           </div>
         </div>
       </CardContent>
