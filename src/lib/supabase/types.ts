@@ -1,4 +1,3 @@
-
 export type Shelter = {
   id: number;
   name: string;
@@ -10,6 +9,7 @@ export type Shelter = {
   status: 'operational' | 'limited' | 'closed';
   created_at: string;
   user_id: string;
+  resources_available?: string[];
 };
 
 export type Resource = {
