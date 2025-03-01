@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { LifeBuoy, Loader2 } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import Layout from '@/components/layout/Layout';
+import { signIn, AuthError } from '@/lib/supabase';
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +16,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +30,9 @@ const Login = () => {
     
     setIsLoading(true);
     
-    // Simulating login process
-    // In a real app, this would be connected to Supabase
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call Supabase signIn function
+      await signIn(email, password);
       
       toast({
         title: "Login successful!",
@@ -41,12 +40,11 @@ const Login = () => {
         duration: 3000,
       });
       
-      // In a real app, we would redirect to dashboard after successful login
-      // For demo, we'll just clear the form
-      setEmail('');
-      setPassword('');
+      // Redirect to dashboard after successful login
+      navigate('/dashboard');
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      const authError = err as AuthError;
+      setError(authError.message || 'Invalid email or password. Please try again.');
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LifeBuoy, Loader2 } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import Layout from '@/components/layout/Layout';
+import { signUp, AuthError } from '@/lib/supabase';
 
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +17,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,25 +36,21 @@ const Register = () => {
     
     setIsLoading(true);
     
-    // Simulating registration process
-    // In a real app, this would be connected to Supabase
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call Supabase signUp function
+      await signUp(email, password);
       
       toast({
         title: "Account created!",
-        description: "You have successfully created your account.",
+        description: "Please check your email to confirm your account.",
         duration: 5000,
       });
       
-      // In a real app, we would redirect to dashboard after successful registration
-      // For demo, we'll just clear the form
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      // Redirect to login page after successful registration
+      navigate('/login');
     } catch (err) {
-      setError('An error occurred during registration. Please try again.');
+      const authError = err as AuthError;
+      setError(authError.message || 'An error occurred during registration. Please try again.');
       console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
