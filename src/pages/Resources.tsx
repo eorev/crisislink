@@ -47,7 +47,8 @@ const Resources = () => {
               total_amount: resource.totalAmount,
               unit: resource.unit,
               shelter_id: null,
-              alert_threshold: Math.floor(resource.totalAmount * 0.2)
+              alert_threshold: Math.floor(resource.totalAmount * 0.2),
+              last_updated: new Date().toISOString()
             });
           } catch (err) {
             console.error(`Error creating initial resource ${resource.name}:`, err);
