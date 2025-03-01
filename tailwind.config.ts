@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -154,6 +155,10 @@ export default {
 				'neumorphic-inset': 'inset 5px 5px 10px #d1d9e6, inset -5px -5px 10px #ffffff',
 				'neumorphic-sm': '4px 4px 8px #d1d9e6, -4px -4px 8px #ffffff',
 				'neumorphic-md': '6px 6px 12px #d1d9e6, -6px -6px 12px #ffffff',
+				'neumorphic-dark': '8px 8px 16px #1a1a1a, -8px -8px 16px #2c2c2c',
+				'neumorphic-inset-dark': 'inset 5px 5px 10px #1a1a1a, inset -5px -5px 10px #2c2c2c',
+				'neumorphic-sm-dark': '4px 4px 8px #1a1a1a, -4px -4px 8px #2c2c2c',
+				'neumorphic-md-dark': '6px 6px 12px #1a1a1a, -6px -6px 12px #2c2c2c',
 			}
 		}
 	},
