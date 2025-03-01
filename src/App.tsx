@@ -9,6 +9,9 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Shelters from "./pages/Shelters";
+import Resources from "./pages/Resources";
+import Predictions from "./pages/Predictions";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
@@ -45,6 +48,9 @@ const AppRoutes = () => {
       <Route path="/login" element={<PublicOnlyRoute element={<Login />} />} />
       <Route path="/register" element={<PublicOnlyRoute element={<Register />} />} />
       <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+      <Route path="/shelters" element={<ProtectedRoute element={<Shelters />} />} />
+      <Route path="/resources" element={<ProtectedRoute element={<Resources />} />} />
+      <Route path="/predictions" element={<ProtectedRoute element={<Predictions />} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

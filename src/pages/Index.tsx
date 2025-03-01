@@ -14,6 +14,7 @@ import {
   Clock
 } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
+import { useAuth } from '@/context/AuthContext';
 
 const features = [
   {
@@ -67,6 +68,7 @@ const disasterTypes = [
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { isAuthenticated } = useAuth();
   
   // Simulate loading delay for animations
   useState(() => {
@@ -92,15 +94,21 @@ const Index = () => {
                 CrisisLink monitors disaster relief shelters in real-time, tracking resources and using AI to optimize distribution and predict natural disasters.
               </p>
               <div className="pt-4 flex flex-col sm:flex-row gap-3">
-                <Button asChild size="lg" className="bg-crisisBlue-600 hover:bg-crisisBlue-700">
-                  <Link to="/dashboard">
-                    Explore Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg">
-                  <Link to="/register">Sign Up Free</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <Button asChild size="lg" className="bg-crisisBlue-600 hover:bg-crisisBlue-700">
+                    <Link to="/dashboard">
+                      Explore Dashboard
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button asChild size="lg" className="bg-crisisBlue-600 hover:bg-crisisBlue-700">
+                    <Link to="/register">
+                      Get Started
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
             <div className={`relative ${isLoaded ? 'animate-fade-in animation-delay-200' : 'opacity-0'}`}>
@@ -200,12 +208,15 @@ const Index = () => {
               Join CrisisLink today and leverage AI and data to improve disaster management.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" variant="secondary" className="bg-white text-crisisBlue-600 hover:bg-gray-100">
-                <Link to="/register">Get Started Free</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-crisisBlue-700">
-                <Link to="/contact">Contact Us</Link>
-              </Button>
+              {isAuthenticated ? (
+                <Button asChild size="lg" variant="secondary" className="bg-white text-crisisBlue-600 hover:bg-gray-100">
+                  <Link to="/dashboard">Explore Dashboard</Link>
+                </Button>
+              ) : (
+                <Button asChild size="lg" variant="secondary" className="bg-white text-crisisBlue-600 hover:bg-gray-100">
+                  <Link to="/register">Get Started Free</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>
