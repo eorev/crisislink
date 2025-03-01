@@ -22,10 +22,12 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className={`space-y-6 ${isLoaded ? 'animate-fade-in' : 'opacity-0'}`}>
             <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-crisisBlue-100 text-crisisBlue-800">
-              Smart Disaster Management
+              AI-Powered Disaster Response
             </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight leading-tight">
-              Optimizing Disaster Relief with <span className="text-crisisBlue-600">AI</span> and <span className="text-crisisGold-500">Data</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-none">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-crisisBlue-600 to-crisisBlue-800">Revolutionize</span> Your 
+              <br className="hidden md:block" /> Disaster 
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-crisisGold-500 to-crisisGold-600"> Response</span>
             </h1>
             <p className="text-lg text-gray-600 md:pr-10 tracking-wide">
               CrisisLink monitors disaster relief shelters in real-time, tracking resources and using AI to optimize distribution and predict natural disasters.
