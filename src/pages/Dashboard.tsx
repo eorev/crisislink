@@ -7,11 +7,29 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import StatsGrid from '@/components/dashboard/StatsGrid';
 import ResourceLevelCard from '@/components/dashboard/ResourceLevelCard';
 import DisasterTable from '@/components/dashboard/DisasterTable';
-import { shelterStats, recentDisasters, resourceLevels } from '@/components/dashboard/DashboardData';
+import { shelterStats, recentDisasters } from '@/components/dashboard/DashboardData';
+import { resourceCategoryData } from '@/components/resources/ResourceData';
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  
+  // Transform resource data for ResourceLevelCard
+  const resourceLevels = resourceCategoryData.map(resource => {
+    // Calculate level as percentage based on some threshold
+    const maxAmount = resource.name.includes('Food') ? 20000 : 
+                     resource.name.includes('Water') ? 40000 : 
+                     resource.name.includes('Medical') ? 6000 : 
+                     resource.name.includes('Power') ? 100 : 3000;
+    
+    const level = Math.round((resource.totalAmount / maxAmount) * 100);
+    
+    return {
+      name: resource.name.split(' ')[0], // Just use the first word (Food, Water, etc.)
+      level: level,
+      alert: level < 50, // Alert if below 50%
+    };
+  });
   
   useEffect(() => {
     // Simulate data loading
