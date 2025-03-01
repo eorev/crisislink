@@ -24,6 +24,7 @@ interface ResourceActionDialogProps {
   unit: string;
   isAdding: boolean;
   onSuccess: () => void;
+  children?: React.ReactNode;
   trigger?: React.ReactNode;
 }
 
@@ -34,6 +35,7 @@ const ResourceActionDialog = ({
   unit,
   isAdding,
   onSuccess,
+  children,
   trigger 
 }: ResourceActionDialogProps) => {
   const [amount, setAmount] = useState<number>(0);
@@ -81,11 +83,11 @@ const ResourceActionDialog = ({
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm">
-            {isAdding ? (
+            {children || (isAdding ? (
               <><PlusCircle className="h-4 w-4 mr-1" />Add</>
             ) : (
               <><MinusCircle className="h-4 w-4 mr-1" />Use</>
-            )}
+            ))}
           </Button>
         )}
       </DialogTrigger>
