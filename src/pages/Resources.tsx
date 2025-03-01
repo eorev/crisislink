@@ -7,7 +7,8 @@ import ResourceCard from '@/components/resources/ResourceCard';
 import ResourceAnalytics from '@/components/resources/ResourceAnalytics';
 import { createResourceCategoryData } from '@/components/resources/ResourceData';
 import { getResources, createResource } from '@/lib/supabase/resources';
-import { Resource } from '@/lib/supabase/types';
+import { getShelters } from '@/lib/supabase/shelters';
+import { Resource, Shelter } from '@/lib/supabase/types';
 import { toast } from 'sonner';
 
 const Resources = () => {
@@ -15,6 +16,7 @@ const Resources = () => {
   const [resources, setResources] = useState(createResourceCategoryData());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shelters, setShelters] = useState<Shelter[]>([]);
 
   const scrollToAnalytics = () => {
     analyticsRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,52 +25,60 @@ const Resources = () => {
   const fetchResources = async () => {
     setIsLoading(true);
     try {
+      // First fetch shelters to get context
+      const shelterData = await getShelters();
+      setShelters(shelterData);
+      
+      // Then fetch resources
       let dbResources = await getResources();
       
-      // If no resources are found, create initial resources
-      if (dbResources.length === 0) {
-        toast.info('Initializing resource database...');
-        
-        // Create initial resources in database
-        for (const resource of resources) {
-          try {
-            // Map resource names to valid category types
-            const categoryMap: Record<string, 'Food' | 'Water' | 'Medical' | 'Beds' | 'Power' | 'Other'> = {
-              'Food Supplies': 'Food',
-              'Water Supplies': 'Water',
-              'Medical Supplies': 'Medical',
-              'Emergency Power': 'Power',
-              'Shelter Kits': 'Other'
-            };
-            
-            await createResource({
-              name: resource.name,
-              category: categoryMap[resource.name] || 'Other',
-              total_amount: resource.totalAmount,
-              unit: resource.unit,
-              shelter_id: null,
-              alert_threshold: Math.floor(resource.totalAmount * 0.2),
-              last_updated: new Date().toISOString()
-            });
-          } catch (err) {
-            console.error(`Error creating initial resource ${resource.name}:`, err);
-          }
+      // Group resources by category and sum up totals across all shelters
+      const resourcesByCategory = dbResources.reduce((acc, resource) => {
+        const category = resource.category;
+        if (!acc[category]) {
+          acc[category] = {
+            total: 0,
+            shelterCount: new Set(),
+            alerts: 0,
+            unit: resource.unit
+          };
         }
         
-        // Fetch again after creating
-        dbResources = await getResources();
-      }
-      
-      const updatedResources = resources.map(resource => {
-        const dbResource = dbResources.find(r => 
-          r.name.toLowerCase() === resource.name.toLowerCase() || 
-          r.name.toLowerCase().includes(resource.name.toLowerCase().split(' ')[0]));
+        acc[category].total += resource.total_amount;
+        if (resource.shelter_id) {
+          acc[category].shelterCount.add(resource.shelter_id);
+        }
         
-        if (dbResource) {
+        // Track alerts (when resource amount is below threshold)
+        if (resource.total_amount <= resource.alert_threshold) {
+          acc[category].alerts += 1;
+        }
+        
+        return acc;
+      }, {} as Record<string, { total: number, shelterCount: Set<number>, alerts: number, unit: string }>);
+      
+      // Map resource data to UI format
+      const updatedResources = resources.map(resource => {
+        // Map UI resource names to database categories
+        const categoryMap: Record<string, string> = {
+          'Food Supplies': 'Food',
+          'Water Supplies': 'Water',
+          'Medical Supplies': 'Medical',
+          'Emergency Power': 'Power',
+          'Shelter Kits': 'Beds'
+        };
+        
+        const dbCategory = categoryMap[resource.name] || 'Other';
+        const categoryData = resourcesByCategory[dbCategory];
+        
+        if (categoryData) {
           return {
             ...resource,
-            id: dbResource.id,
-            totalAmount: dbResource.total_amount,
+            totalAmount: categoryData.total,
+            shelters: categoryData.shelterCount.size,
+            alerts: categoryData.alerts,
+            unit: categoryData.unit,
+            status: categoryData.alerts > 0 ? 'warning' : 'normal'
           };
         }
         return resource;
@@ -93,7 +103,7 @@ const Resources = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Resource Management</h1>
-            <p className="text-gray-600 mt-2">Track and distribute critical resources across shelters</p>
+            <p className="text-gray-600 mt-2">Track and distribute critical resources across {shelters.length} shelters</p>
           </div>
           <div>
             <Button variant="outline" onClick={scrollToAnalytics}>

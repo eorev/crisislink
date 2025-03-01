@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Users, Phone, Clock, Plus, Trash2, AlertCircle } from 'lucide-react';
 import AddShelterDialog from '@/components/dashboard/AddShelterDialog';
 import { getShelters, deleteShelter } from '@/lib/supabase/shelters';
+import { initializeShelters } from '@/lib/supabase/initialData';
 import type { Shelter } from '@/lib/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -90,6 +91,7 @@ const Shelters = () => {
   const [shelterToDelete, setShelterToDelete] = useState<number | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchShelters = async () => {
     setIsLoading(true);
@@ -97,13 +99,26 @@ const Shelters = () => {
     try {
       const shelterData = await getShelters();
 
-      // Map the shelters to include resources from resources_available
-      const sheltersWithResources = shelterData.map(shelter => ({
-        ...shelter,
-        resources: shelter.resources_available || getRandomResources(),
-      }));
-
-      setShelters(sheltersWithResources);
+      // If no shelters exist and we haven't initialized yet, create initial data
+      if (shelterData.length === 0 && !isInitialized) {
+        setIsInitialized(true);
+        toast.info("Initializing shelter database with sample data...");
+        await initializeShelters();
+        // Fetch again after initialization
+        const initializedData = await getShelters();
+        const sheltersWithResources = initializedData.map(shelter => ({
+          ...shelter,
+          resources: shelter.resources_available || getRandomResources(),
+        }));
+        setShelters(sheltersWithResources);
+      } else {
+        // Map the shelters to include resources from resources_available
+        const sheltersWithResources = shelterData.map(shelter => ({
+          ...shelter,
+          resources: shelter.resources_available || getRandomResources(),
+        }));
+        setShelters(sheltersWithResources);
+      }
     } catch (err) {
       console.error('Error fetching shelters:', err);
       setError('Failed to load shelters. Using fallback data.');
