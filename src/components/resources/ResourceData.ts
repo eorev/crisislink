@@ -1,4 +1,3 @@
-
 import { 
   Utensils, 
   Droplet, 
@@ -8,11 +7,24 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
-export const resourceCategoryData = [
+export interface ResourceCategory {
+  id: number;
+  name: string;
+  icon: React.ReactNode;
+  totalAmount: number;
+  unit: string;
+  recentChange: string;
+  positiveChange: boolean;
+  shelters: number;
+  alerts: number;
+  status: string;
+}
+
+export const createResourceCategoryData = (): ResourceCategory[] => [
   {
     id: 1,
     name: 'Food Supplies',
-    icon: <Utensils className="h-5 w-5 text-emerald-600" />,
+    icon: React.createElement(Utensils, { className: "h-5 w-5 text-emerald-600" }),
     totalAmount: 15250,
     unit: 'meals',
     recentChange: '+1200',
@@ -24,7 +36,7 @@ export const resourceCategoryData = [
   {
     id: 2,
     name: 'Water Supplies',
-    icon: <Droplet className="h-5 w-5 text-blue-600" />,
+    icon: React.createElement(Droplet, { className: "h-5 w-5 text-blue-600" }),
     totalAmount: 28750,
     unit: 'gallons',
     recentChange: '-2450',
@@ -36,7 +48,7 @@ export const resourceCategoryData = [
   {
     id: 3,
     name: 'Medical Supplies',
-    icon: <Heart className="h-5 w-5 text-red-600" />,
+    icon: React.createElement(Heart, { className: "h-5 w-5 text-red-600" }),
     totalAmount: 4320,
     unit: 'kits',
     recentChange: '+350',
@@ -48,7 +60,7 @@ export const resourceCategoryData = [
   {
     id: 4,
     name: 'Emergency Power',
-    icon: <Battery className="h-5 w-5 text-amber-600" />,
+    icon: React.createElement(Battery, { className: "h-5 w-5 text-amber-600" }),
     totalAmount: 62,
     unit: 'generators',
     recentChange: '-5',
@@ -60,7 +72,7 @@ export const resourceCategoryData = [
   {
     id: 5,
     name: 'Shelter Kits',
-    icon: <Package className="h-5 w-5 text-indigo-600" />,
+    icon: React.createElement(Package, { className: "h-5 w-5 text-indigo-600" }),
     totalAmount: 1875,
     unit: 'kits',
     recentChange: '+125',
@@ -70,6 +82,8 @@ export const resourceCategoryData = [
     status: 'normal'
   }
 ];
+
+export const resourceCategoryData = createResourceCategoryData();
 
 export const getResourceBarChartData = () => resourceCategoryData.map(resource => ({
   name: resource.name.split(' ')[0],
