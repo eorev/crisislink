@@ -49,11 +49,21 @@ export function ThemeProvider({
 
   // Apply transition class for smooth theme changes
   useEffect(() => {
-    const root = window.document.documentElement
-    if (!root.classList.contains('transition-colors')) {
-      root.classList.add('transition-colors', 'duration-300');
-    }
-  }, []);
+    document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
+    
+    // Add transition to all elements for smooth theme switching
+    const style = document.createElement('style');
+    style.textContent = `
+      * {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, [theme]);
 
   const value = {
     theme,

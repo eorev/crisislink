@@ -15,9 +15,9 @@ export const ThemeToggleSimple = () => {
       className="rounded-full h-9 w-9 p-0 dark:text-gray-200 dark:hover:bg-gray-700/50"
     >
       {theme === "dark" ? (
-        <Sun className="h-[1.2rem] w-[1.2rem] text-amber-300" />
+        <Sun className="h-[1.2rem] w-[1.2rem] text-amber-300 animate-in zoom-in duration-300" />
       ) : (
-        <Moon className="h-[1.2rem] w-[1.2rem] text-slate-700" />
+        <Moon className="h-[1.2rem] w-[1.2rem] text-slate-700 animate-in zoom-in duration-300" />
       )}
       <span className="sr-only">Toggle theme</span>
     </Button>
