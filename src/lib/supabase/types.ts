@@ -49,3 +49,11 @@ export type Prediction = {
   created_at: string;
   user_id: string;
 };
+
+export type UserProfile = {
+  id: string;
+  area_code?: string; // Used as the user's zip code
+  display_name?: string;
+  created_at: string;
+  updated_at: string;
+};

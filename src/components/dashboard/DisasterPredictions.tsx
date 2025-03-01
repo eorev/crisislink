@@ -3,16 +3,21 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, AlertCircle, ThermometerSun, Wind, Droplets } from 'lucide-react';
+import { AlertTriangle, AlertCircle, ThermometerSun, Wind, Droplets, RefreshCw, MapPin } from 'lucide-react';
 import { DisasterPrediction, PredictionResponse } from '@/lib/ai/gemini';
 import { getHistoricalDisasterData, getWeatherForecastData } from '@/lib/services/disasterDataService';
 import { analyzePredictions } from '@/lib/ai/gemini';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 const DisasterPredictions = () => {
     const [predictions, setPredictions] = useState<PredictionResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { profile } = useAuth();
+    const { toast } = useToast();
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
     const fetchPredictions = async () => {
         try {
@@ -23,9 +28,26 @@ const DisasterPredictions = () => {
             const historicalData = await getHistoricalDisasterData();
             const forecastData = await getWeatherForecastData();
 
-            // Analyze data with Gemini
-            const predictionResults = await analyzePredictions(historicalData, forecastData);
+            // Use area_code as zip code
+            const userZipCode = profile?.area_code;
+            console.log('Fetching predictions with zip code:', userZipCode);
+
+            // Analyze data with Gemini, passing the user's zip code if available
+            const predictionResults = await analyzePredictions(
+                historicalData,
+                forecastData,
+                userZipCode
+            );
+
             setPredictions(predictionResults);
+            setLastUpdated(new Date());
+
+            // Show success toast
+            toast({
+                title: "Predictions updated",
+                description: `Successfully fetched disaster predictions${userZipCode ? ` for zip code ${userZipCode}` : ''}.`,
+                variant: "default",
+            });
         } catch (err) {
             console.error('Error fetching predictions:', err);
 
@@ -41,6 +63,13 @@ const DisasterPredictions = () => {
             } else {
                 setError('Failed to generate disaster predictions. Please try again later.');
             }
+
+            // Show error toast
+            toast({
+                title: "Error updating predictions",
+                description: "There was a problem fetching the latest predictions. Showing fallback data.",
+                variant: "destructive",
+            });
         } finally {
             setIsLoading(false);
         }
@@ -48,14 +77,39 @@ const DisasterPredictions = () => {
 
     useEffect(() => {
         fetchPredictions();
-    }, []);
+    }, [profile?.area_code]); // Re-fetch when zip code changes
+
+    const handleRefresh = () => {
+        fetchPredictions();
+    };
+
+    // Format the last updated time
+    const formatLastUpdated = () => {
+        if (!lastUpdated) return '';
+
+        const now = new Date();
+        const diffMs = now.getTime() - lastUpdated.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+
+        if (diffMins < 1) return 'just now';
+        if (diffMins === 1) return '1 minute ago';
+        if (diffMins < 60) return `${diffMins} minutes ago`;
+
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours === 1) return '1 hour ago';
+        if (diffHours < 24) return `${diffHours} hours ago`;
+
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays === 1) return '1 day ago';
+        return `${diffDays} days ago`;
+    };
 
     // Helper function to get the appropriate icon for a disaster type
     const getDisasterIcon = (disasterType: string) => {
         const type = disasterType.toLowerCase();
-        if (type.includes('flood')) return <Droplets className="h-5 w-5 text-blue-500" />;
-        if (type.includes('fire') || type.includes('wildfire')) return <ThermometerSun className="h-5 w-5 text-red-500" />;
-        if (type.includes('hurricane') || type.includes('storm')) return <Wind className="h-5 w-5 text-indigo-500" />;
+        if (type.includes('flood') || type.includes('water')) return <Droplets className="h-5 w-5 text-blue-500" />;
+        if (type.includes('fire') || type.includes('wildfire') || type.includes('heat')) return <ThermometerSun className="h-5 w-5 text-red-500" />;
+        if (type.includes('hurricane') || type.includes('storm') || type.includes('wind') || type.includes('surge')) return <Wind className="h-5 w-5 text-indigo-500" />;
         return <AlertCircle className="h-5 w-5 text-gray-500" />;
     };
 
@@ -73,12 +127,60 @@ const DisasterPredictions = () => {
         }
     };
 
+    // Get unique locations from predictions
+    const getUniqueLocations = () => {
+        if (!predictions?.predictions) return [];
+
+        const locations = predictions.predictions.map(p => p.location);
+        return [...new Set(locations)];
+    };
+
     return (
         <div className="space-y-6">
-            <div className="flex flex-col">
-                <h2 className="text-2xl font-bold text-gray-900">Disaster Predictions</h2>
-                <p className="text-gray-600">AI-powered analysis of potential disaster risks</p>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Disaster Predictions</h2>
+                    <p className="text-gray-600">
+                        AI-powered analysis of potential disaster risks
+                        {profile?.area_code && (
+                            <span className="ml-1">for zip code <span className="font-medium">{profile.area_code}</span></span>
+                        )}
+                    </p>
+                    {getUniqueLocations().length > 0 && (
+                        <div className="flex items-center mt-1 text-sm text-gray-500">
+                            <MapPin className="h-3.5 w-3.5 mr-1" />
+                            <span>{getUniqueLocations().join(', ')}</span>
+                        </div>
+                    )}
+                </div>
+                <div className="flex items-center gap-2">
+                    {lastUpdated && (
+                        <span className="text-xs text-gray-500">
+                            Updated {formatLastUpdated()}
+                        </span>
+                    )}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRefresh}
+                        disabled={isLoading}
+                        className="flex items-center gap-1"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                        <span>{isLoading ? 'Updating...' : 'Refresh'}</span>
+                    </Button>
+                </div>
             </div>
+
+            {!profile?.area_code && (
+                <Alert className="bg-amber-50 border-amber-200">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertTitle className="text-amber-800">No zip code set</AlertTitle>
+                    <AlertDescription className="text-amber-700">
+                        Please set your zip code in the <a href="/settings" className="font-medium underline">Settings</a> page to get location-specific disaster predictions.
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {isLoading ? (
                 <div className="space-y-4">

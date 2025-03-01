@@ -1,4 +1,3 @@
-
 // Re-export client
 export * from './client';
 
@@ -19,3 +18,6 @@ export * from './disasters';
 
 // Re-export prediction operations
 export * from './predictions';
+
+// Re-export profile operations
+export * from './profiles';

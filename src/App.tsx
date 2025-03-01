@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import Register from "./pages/Register";
 import Shelters from "./pages/Shelters";
 import Resources from "./pages/Resources";
 import Predictions from "./pages/Predictions";
+import Settings from "./pages/Settings";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
@@ -19,29 +19,29 @@ const queryClient = new QueryClient();
 // Protected route component
 const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
-  
+
   return isAuthenticated ? element : <Navigate to="/" replace />;
 };
 
 // Route that redirects authenticated users
 const PublicOnlyRoute = ({ element }: { element: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
-  
+
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : element;
 };
 
 // The main app component needs to be extracted to use the auth hooks
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();
-  
+
   return (
     <Routes>
       <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Index />} />
@@ -51,6 +51,7 @@ const AppRoutes = () => {
       <Route path="/shelters" element={<ProtectedRoute element={<Shelters />} />} />
       <Route path="/resources" element={<ProtectedRoute element={<Resources />} />} />
       <Route path="/predictions" element={<ProtectedRoute element={<Predictions />} />} />
+      <Route path="/settings" element={<ProtectedRoute element={<Settings />} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
