@@ -1,7 +1,8 @@
 
 import { supabase, AuthError } from './client';
 
-export { AuthError };
+// Use "export type" instead of just "export" for re-exporting types
+export type { AuthError };
 
 export const signIn = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({
