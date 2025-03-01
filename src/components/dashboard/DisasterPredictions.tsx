@@ -140,18 +140,20 @@ const DisasterPredictions = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900">Disaster Predictions</h2>
-                    <p className="text-gray-600">
-                        AI-powered analysis of potential disaster risks
-                        {profile?.area_code && (
-                            <span className="ml-1">for zip code <span className="font-medium">{profile.area_code}</span></span>
+                    <div className="flex flex-col">
+                        <p className="text-gray-600">
+                            AI-powered analysis of potential disaster risks
+                            {profile?.area_code && (
+                                <span className="ml-1">for zip code <span className="font-medium">{profile.area_code}</span></span>
+                            )}
+                        </p>
+                        {getUniqueLocations().length > 0 && (
+                            <div className="flex items-center mt-1 text-sm text-gray-500">
+                                <MapPin className="h-3.5 w-3.5 mr-1" />
+                                <span>{getUniqueLocations().join(', ')}</span>
+                            </div>
                         )}
-                    </p>
-                    {getUniqueLocations().length > 0 && (
-                        <div className="flex items-center mt-1 text-sm text-gray-500">
-                            <MapPin className="h-3.5 w-3.5 mr-1" />
-                            <span>{getUniqueLocations().join(', ')}</span>
-                        </div>
-                    )}
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     {lastUpdated && (

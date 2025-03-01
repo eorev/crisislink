@@ -56,7 +56,7 @@ export async function analyzePredictions(
   try {
     // Check if API key is available
     if (!env.GEMINI_API_KEY) {
-      console.warn('No Gemini API key found. Using fallback data.');
+      console.warn('No Gemini API key found. Using alternative prediction method.');
       throw new Error('API key is missing');
     }
 
@@ -131,84 +131,19 @@ export async function analyzePredictions(
   } catch (error) {
     console.error('Error analyzing predictions with Gemini:', error);
     
-    // Create a dynamic fallback response based on the zip code
-    if (userZipCode) {
-      // Determine location based on zip code
-      let location = "your area";
-      let predictions: DisasterPrediction[] = [];
-      
-      // This would ideally be a more comprehensive lookup
-      // For now, we'll handle a few example zip codes
-      if (userZipCode === "08724") {
-        location = "Brick, New Jersey";
-        predictions = [
-          {
-            disaster_type: "Coastal Flooding",
-            location: "Brick, New Jersey",
-            probability: 0.75,
-            severity: "Medium",
-            timeframe: "Next 48 hours",
-            details: "Coastal flood warning in effect. Brick Township is vulnerable to coastal flooding due to its proximity to the Atlantic Ocean and Barnegat Bay."
-          },
-          {
-            disaster_type: "Storm Surge",
-            location: "Brick, New Jersey",
-            probability: 0.65,
-            severity: "Medium",
-            timeframe: "Next 72 hours",
-            details: "Storm surge watch is in effect. Historical data shows Brick was severely impacted by storm surge during Hurricane Sandy."
-          }
-        ];
-      } else if (userZipCode === "19711") {
-        location = "Newark, Delaware";
-        predictions = [
-          {
-            disaster_type: "Flood",
-            location: "Newark, Delaware",
-            probability: 0.65,
-            severity: "Medium",
-            timeframe: "Next 24-48 hours",
-            details: "Recent rainfall and thunderstorm watch in Newark, Delaware indicate potential for localized flooding. Historical flood patterns in this area suggest medium risk."
-          },
-          {
-            disaster_type: "Severe Storm",
-            location: "Newark, Delaware",
-            probability: 0.75,
-            severity: "Medium",
-            timeframe: "Next 24 hours",
-            details: "Thunderstorm watch is in effect for Newark, Delaware. Historical data shows previous storm damage in this area."
-          }
-        ];
-      } else {
-        // For any other zip code, generate generic predictions based on the zip code
-        // In a real app, you would use a zip code API to get the actual location
-        predictions = [
-          {
-            disaster_type: "Unknown Risk Type 1",
-            location: `Area with zip code ${userZipCode}`,
-            probability: 0.60,
-            severity: "Medium",
-            timeframe: "Next 48 hours",
-            details: `Based on limited data for zip code ${userZipCode}, there may be potential risks. Consider checking local emergency management information.`
-          },
-          {
-            disaster_type: "Unknown Risk Type 2",
-            location: `Area with zip code ${userZipCode}`,
-            probability: 0.40,
-            severity: "Low",
-            timeframe: "Next week",
-            details: `Secondary potential risk for zip code ${userZipCode}. This is a fallback prediction due to limited data.`
-          }
-        ];
-      }
-      
-      return {
-        predictions: predictions,
-        summary: `Fallback predictions for zip code ${userZipCode} (${location}). These predictions are based on limited data and historical patterns for this area. For more accurate information, please check local emergency management sources.`
-      };
-    }
-    
-    // Generic fallback if no zip code is provided
+    // Create a dynamic fallback response based on the actual data
+    return generateFallbackPredictions(historicalData, forecastData, userZipCode);
+  }
+}
+
+// Function to generate fallback predictions based on actual data
+function generateFallbackPredictions(
+  historicalData: HistoricalDisasterData[],
+  forecastData: WeatherForecastData[],
+  userZipCode?: string
+): PredictionResponse {
+  // If no zip code is provided, return a generic message
+  if (!userZipCode) {
     return {
       predictions: [
         {
@@ -223,4 +158,236 @@ export async function analyzePredictions(
       summary: "Error connecting to AI service. Unable to generate location-specific predictions without a zip code. Please provide your zip code in the settings page."
     };
   }
+
+  // Try to find the location based on the zip code
+  let locationName = `Area with zip code ${userZipCode}`;
+  const predictions: DisasterPrediction[] = [];
+  
+  // Analyze the data to find relevant information for the user's location
+  // First, try to find the location in the forecast data
+  const relevantForecasts = forecastData.filter(forecast => {
+    // This is a simplified approach - in a real app, you would use a zip code API
+    // to determine the city/location name from the zip code
+    return forecast.location.toLowerCase().includes(getLocationFromZip(userZipCode).toLowerCase());
+  });
+  
+  // If we found relevant forecasts, use them to generate predictions
+  if (relevantForecasts.length > 0) {
+    locationName = relevantForecasts[0].location;
+    
+    // Check for weather alerts in the forecasts
+    const alerts = relevantForecasts.flatMap(forecast => forecast.alerts || []);
+    const uniqueAlerts = [...new Set(alerts)];
+    
+    // Generate predictions based on alerts
+    if (uniqueAlerts.length > 0) {
+      uniqueAlerts.forEach((alert, index) => {
+        const alertLower = alert.toLowerCase();
+        let disasterType = "Severe Weather";
+        let severity: "Low" | "Medium" | "High" = "Medium";
+        let probability = 0.6;
+        
+        // Determine disaster type and severity based on the alert
+        if (alertLower.includes("flood")) {
+          disasterType = "Flooding";
+          severity = "Medium";
+          probability = 0.7;
+        } else if (alertLower.includes("hurricane") || alertLower.includes("tropical")) {
+          disasterType = "Hurricane";
+          severity = "High";
+          probability = 0.8;
+        } else if (alertLower.includes("storm")) {
+          disasterType = "Severe Storm";
+          severity = "Medium";
+          probability = 0.75;
+        } else if (alertLower.includes("wind")) {
+          disasterType = "High Winds";
+          severity = "Medium";
+          probability = 0.65;
+        } else if (alertLower.includes("heat")) {
+          disasterType = "Heat Wave";
+          severity = "Medium";
+          probability = 0.7;
+        } else if (alertLower.includes("snow") || alertLower.includes("winter")) {
+          disasterType = "Winter Storm";
+          severity = "Medium";
+          probability = 0.7;
+        } else if (alertLower.includes("thunder")) {
+          disasterType = "Thunderstorms";
+          severity = "Low";
+          probability = 0.6;
+        } else if (alertLower.includes("tornado")) {
+          disasterType = "Tornado";
+          severity = "High";
+          probability = 0.7;
+        }
+        
+        predictions.push({
+          disaster_type: disasterType,
+          location: locationName,
+          probability: probability,
+          severity: severity,
+          timeframe: "Next 24-72 hours",
+          details: `${alert} is in effect for ${locationName}. Take necessary precautions.`
+        });
+      });
+    }
+    
+    // If no alerts but high precipitation, add a general weather warning
+    if (predictions.length === 0) {
+      const highPrecipForecasts = relevantForecasts.filter(f => f.precipitation > 50);
+      if (highPrecipForecasts.length > 0) {
+        predictions.push({
+          disaster_type: "Heavy Rain",
+          location: locationName,
+          probability: 0.6,
+          severity: "Low",
+          timeframe: "Next 24-48 hours",
+          details: `High precipitation forecast for ${locationName}. Be prepared for potential localized flooding.`
+        });
+      }
+    }
+  }
+  
+  // If we still don't have predictions, look at historical data
+  if (predictions.length === 0) {
+    // Find historical disasters in the same area
+    const relevantHistory = historicalData.filter(disaster => {
+      return disaster.location.toLowerCase().includes(getLocationFromZip(userZipCode).toLowerCase());
+    });
+    
+    if (relevantHistory.length > 0) {
+      locationName = relevantHistory[0].location;
+      
+      // Group by disaster type and count occurrences
+      const disasterTypes = relevantHistory.reduce((acc, disaster) => {
+        acc[disaster.type] = (acc[disaster.type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      // Create predictions for the most common disaster types
+      Object.entries(disasterTypes)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .forEach(([type, count]) => {
+          const probability = Math.min(0.5 + (count / relevantHistory.length) * 0.3, 0.9);
+          predictions.push({
+            disaster_type: type,
+            location: locationName,
+            probability: probability,
+            severity: "Medium",
+            timeframe: "Next 1-2 weeks",
+            details: `Based on historical patterns, ${locationName} has experienced ${count} ${type.toLowerCase()} events in the past. Monitor local conditions.`
+          });
+        });
+    }
+  }
+  
+  // If we still don't have predictions, generate generic ones based on the zip code
+  if (predictions.length === 0) {
+    // Use the first 3 digits of the zip code to determine the general region
+    const zipRegion = userZipCode.substring(0, 3);
+    
+    // Northeast (000-299)
+    if (parseInt(zipRegion) <= 299) {
+      predictions.push({
+        disaster_type: "Winter Storm",
+        location: locationName,
+        probability: 0.5,
+        severity: "Medium",
+        timeframe: "Next 1-2 weeks",
+        details: `Northeast regions are prone to winter storms and nor'easters. Stay prepared for changing weather conditions.`
+      });
+    } 
+    // Southeast/Gulf Coast (300-399)
+    else if (parseInt(zipRegion) <= 399) {
+      predictions.push({
+        disaster_type: "Hurricane",
+        location: locationName,
+        probability: 0.4,
+        severity: "Medium",
+        timeframe: "Hurricane season",
+        details: `Southeast coastal areas are vulnerable to hurricanes during hurricane season. Monitor weather updates.`
+      });
+    }
+    // South (400-499)
+    else if (parseInt(zipRegion) <= 499) {
+      predictions.push({
+        disaster_type: "Severe Thunderstorm",
+        location: locationName,
+        probability: 0.5,
+        severity: "Medium",
+        timeframe: "Next 1-2 weeks",
+        details: `Southern regions often experience severe thunderstorms. Be aware of potential flash flooding and lightning.`
+      });
+    }
+    // Midwest (500-599)
+    else if (parseInt(zipRegion) <= 599) {
+      predictions.push({
+        disaster_type: "Tornado",
+        location: locationName,
+        probability: 0.3,
+        severity: "High",
+        timeframe: "Tornado season",
+        details: `Midwest regions are part of tornado alley. Stay alert during tornado season and have an emergency plan.`
+      });
+    }
+    // Southwest (600-799)
+    else if (parseInt(zipRegion) <= 799) {
+      predictions.push({
+        disaster_type: "Wildfire",
+        location: locationName,
+        probability: 0.4,
+        severity: "High",
+        timeframe: "Fire season",
+        details: `Southwest regions are prone to wildfires during dry seasons. Monitor local fire danger levels.`
+      });
+    }
+    // West (800-999)
+    else {
+      predictions.push({
+        disaster_type: "Earthquake",
+        location: locationName,
+        probability: 0.2,
+        severity: "High",
+        timeframe: "Unpredictable",
+        details: `Western regions are in seismically active zones. Be prepared for earthquakes at any time.`
+      });
+    }
+    
+    // Add a second generic prediction based on climate change trends
+    predictions.push({
+      disaster_type: "Extreme Weather",
+      location: locationName,
+      probability: 0.3,
+      severity: "Medium",
+      timeframe: "Ongoing",
+      details: `Climate change is increasing the frequency of extreme weather events across all regions. Stay informed about changing weather patterns.`
+    });
+  }
+  
+  return {
+    predictions: predictions,
+    summary: `These predictions for ${locationName} (zip code ${userZipCode}) are based on analysis of available weather forecasts and historical disaster data. This is a fallback analysis due to AI service limitations. For the most accurate information, please check local emergency management sources.`
+  };
+}
+
+// Helper function to get a location name from a zip code
+// This is a simplified version - in a real app, you would use a zip code API
+function getLocationFromZip(zipCode: string): string {
+  // This is just a very basic mapping for demonstration purposes
+  const zipMappings: Record<string, string> = {
+    "08724": "Brick, New Jersey",
+    "19711": "Newark, Delaware",
+    "90210": "Beverly Hills",
+    "10001": "New York City",
+    "60601": "Chicago",
+    "77001": "Houston",
+    "94101": "San Francisco",
+    "33101": "Miami",
+    "98101": "Seattle",
+    "20001": "Washington DC"
+  };
+  
+  return zipMappings[zipCode] || "";
 } 
