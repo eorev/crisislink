@@ -47,7 +47,7 @@ const Dashboard = () => {
               {/* Resource Levels */}
               <ResourceLevelCard resources={resourceLevels} />
 
-              {/* Active Disasters */}
+              {/* Active Disasters with chronological sorting and pagination */}
               <DisasterTable disasters={recentDisasters} />
             </div>
           </>

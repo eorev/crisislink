@@ -1,13 +1,16 @@
 
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Disaster {
   type: string;
   location: string;
   severity: string;
   time: string;
+  date: Date;
   status: string;
   severityClass: string;
 }
@@ -17,6 +20,28 @@ interface DisasterTableProps {
 }
 
 const DisasterTable = ({ disasters }: DisasterTableProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  
+  // Sort disasters chronologically by date (most recent first)
+  const sortedDisasters = useMemo(() => {
+    return [...disasters].sort((a, b) => a.date > b.date ? -1 : 1);
+  }, [disasters]);
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedDisasters.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentDisasters = sortedDisasters.slice(indexOfFirstItem, indexOfLastItem);
+  
+  const goToNextPage = () => {
+    setCurrentPage(current => Math.min(current + 1, totalPages));
+  };
+  
+  const goToPreviousPage = () => {
+    setCurrentPage(current => Math.max(current - 1, 1));
+  };
+
   return (
     <Card className="lg:col-span-2 animate-fade-in animation-delay-400 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-neumorphic dark:shadow-neumorphic-dark border-0">
       <CardHeader>
@@ -36,7 +61,7 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
               </tr>
             </thead>
             <tbody>
-              {disasters.map((disaster, i) => (
+              {currentDisasters.map((disaster, i) => (
                 <tr key={i} className="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                   <td className="py-3 text-sm">{disaster.type}</td>
                   <td className="py-3 text-sm">{disaster.location}</td>
@@ -61,6 +86,36 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        <div className="mt-4 flex justify-between items-center">
+          <div className="text-sm text-gray-500">
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPreviousPage}
+              disabled={currentPage === 1}
+              className="h-8 w-8 p-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 shadow-neumorphic-sm dark:shadow-neumorphic-sm-dark border-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">Previous Page</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+              className="h-8 w-8 p-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 shadow-neumorphic-sm dark:shadow-neumorphic-sm-dark border-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+              <span className="sr-only">Next Page</span>
+            </Button>
+          </div>
+        </div>
+
         <div className="mt-4 flex justify-center">
           <Button 
             asChild 

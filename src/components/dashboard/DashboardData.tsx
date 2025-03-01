@@ -44,6 +44,16 @@ export const recentDisasters = [
     location: 'San Francisco, CA', 
     severity: 'High', 
     time: '2 hours ago',
+    date: new Date(new Date().getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
+    status: 'active',
+    severityClass: 'bg-red-100 text-red-800'
+  },
+  { 
+    type: 'Wildfire', 
+    location: 'Los Angeles, CA', 
+    severity: 'High', 
+    time: '6 hours ago',
+    date: new Date(new Date().getTime() - 6 * 60 * 60 * 1000), // 6 hours ago
     status: 'active',
     severityClass: 'bg-red-100 text-red-800'
   },
@@ -52,24 +62,72 @@ export const recentDisasters = [
     location: 'New Orleans, LA', 
     severity: 'Medium', 
     time: '1 day ago',
+    date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000), // 1 day ago
     status: 'monitoring',
     severityClass: 'bg-yellow-100 text-yellow-800'
-  },
-  { 
-    type: 'Wildfire', 
-    location: 'Los Angeles, CA', 
-    severity: 'High', 
-    time: '6 hours ago',
-    status: 'active',
-    severityClass: 'bg-red-100 text-red-800'
   },
   { 
     type: 'Hurricane', 
     location: 'Miami, FL', 
     severity: 'Medium', 
     time: '2 days ago',
+    date: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
     status: 'recovering',
     severityClass: 'bg-blue-100 text-blue-800'
+  },
+  { 
+    type: 'Tornado', 
+    location: 'Oklahoma City, OK', 
+    severity: 'High', 
+    time: '4 hours ago',
+    date: new Date(new Date().getTime() - 4 * 60 * 60 * 1000), // 4 hours ago
+    status: 'active',
+    severityClass: 'bg-red-100 text-red-800'
+  },
+  { 
+    type: 'Flash Flood', 
+    location: 'Austin, TX', 
+    severity: 'Medium', 
+    time: '12 hours ago',
+    date: new Date(new Date().getTime() - 12 * 60 * 60 * 1000), // 12 hours ago
+    status: 'monitoring',
+    severityClass: 'bg-yellow-100 text-yellow-800'
+  },
+  { 
+    type: 'Winter Storm', 
+    location: 'Chicago, IL', 
+    severity: 'Medium', 
+    time: '18 hours ago',
+    date: new Date(new Date().getTime() - 18 * 60 * 60 * 1000), // 18 hours ago
+    status: 'active',
+    severityClass: 'bg-yellow-100 text-yellow-800'
+  },
+  { 
+    type: 'Landslide', 
+    location: 'Portland, OR', 
+    severity: 'Medium', 
+    time: '3 days ago',
+    date: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    status: 'recovering',
+    severityClass: 'bg-blue-100 text-blue-800'
+  },
+  { 
+    type: 'Tsunami Warning', 
+    location: 'Seattle, WA', 
+    severity: 'High', 
+    time: '1 hour ago',
+    date: new Date(new Date().getTime() - 1 * 60 * 60 * 1000), // 1 hour ago
+    status: 'active',
+    severityClass: 'bg-red-100 text-red-800'
+  },
+  { 
+    type: 'Heatwave', 
+    location: 'Phoenix, AZ', 
+    severity: 'Medium', 
+    time: '5 hours ago',
+    date: new Date(new Date().getTime() - 5 * 60 * 60 * 1000), // 5 hours ago
+    status: 'monitoring',
+    severityClass: 'bg-yellow-100 text-yellow-800'
   },
 ];
 
