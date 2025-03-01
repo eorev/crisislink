@@ -47,6 +47,14 @@ export function ThemeProvider({
     root.classList.add(theme)
   }, [theme])
 
+  // Apply transition class for smooth theme changes
+  useEffect(() => {
+    const root = window.document.documentElement
+    if (!root.classList.contains('transition-colors')) {
+      root.classList.add('transition-colors', 'duration-300');
+    }
+  }, []);
+
   const value = {
     theme,
     setTheme: (theme: Theme) => {

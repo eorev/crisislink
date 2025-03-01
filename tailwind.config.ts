@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -76,6 +75,11 @@ export default {
 					700: '#B45309',
 					800: '#8E4B10',
 					900: '#713F12',
+				},
+				darkBg: {
+					DEFAULT: '#1a202c',
+					light: '#2d3748',
+					lighter: '#4a5568'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
@@ -159,6 +163,10 @@ export default {
 				'neumorphic-inset-dark': 'inset 5px 5px 10px #1a1a1a, inset -5px -5px 10px #2c2c2c',
 				'neumorphic-sm-dark': '4px 4px 8px #1a1a1a, -4px -4px 8px #2c2c2c',
 				'neumorphic-md-dark': '6px 6px 12px #1a1a1a, -6px -6px 12px #2c2c2c',
+				'dark-neumorphic': '5px 5px 10px #151a24, -5px -5px 10px #253244',
+				'dark-neumorphic-inset': 'inset 3px 3px 6px #151a24, inset -3px -3px 6px #253244',
+				'dark-neumorphic-sm': '3px 3px 6px #151a24, -3px -3px 6px #253244',
+				'dark-card': '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)',
 			}
 		}
 	},
