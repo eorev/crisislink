@@ -211,8 +211,6 @@ const Shelters = () => {
                         <span>Updated {formatLastUpdated(shelter.last_updated)}</span>
                       </div>
                     </div>
-
-                    <Button variant="outline" className="w-full mt-2">View Details</Button>
                   </div>
                 </CardContent>
               </Card>
