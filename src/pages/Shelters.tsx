@@ -1,12 +1,24 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Phone, Clock, Plus } from 'lucide-react';
+import { MapPin, Users, Phone, Clock, Plus, Trash2, AlertCircle } from 'lucide-react';
 import AddShelterDialog from '@/components/dashboard/AddShelterDialog';
-import { getShelters } from '@/lib/supabase/shelters';
+import { getShelters, deleteShelter } from '@/lib/supabase/shelters';
 import type { Shelter } from '@/lib/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 // Define a type that extends Shelter with resources
 type ShelterWithResources = Shelter & { resources: string[] };
@@ -75,6 +87,9 @@ const Shelters = () => {
   const [shelters, setShelters] = useState<ShelterWithResources[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shelterToDelete, setShelterToDelete] = useState<number | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchShelters = async () => {
     setIsLoading(true);
@@ -124,6 +139,34 @@ const Shelters = () => {
     fetchShelters();
   };
 
+  const handleDeleteClick = (shelterId: number) => {
+    setShelterToDelete(shelterId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!shelterToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteShelter(shelterToDelete);
+      toast.success("Shelter deleted successfully");
+      fetchShelters();
+    } catch (err) {
+      console.error("Error deleting shelter:", err);
+      toast.error("Failed to delete shelter");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setShelterToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteDialogOpen(false);
+    setShelterToDelete(null);
+  };
+
   return (
     <Layout>
       <div className="container mx-auto py-10 px-4">
@@ -164,11 +207,23 @@ const Shelters = () => {
                   </div>
                 )}
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xl font-semibold text-gray-900">{shelter.name}</CardTitle>
-                  <CardDescription className="flex items-center text-gray-600">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {shelter.address}
-                  </CardDescription>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-xl font-semibold text-gray-900">{shelter.name}</CardTitle>
+                      <CardDescription className="flex items-center text-gray-600">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {shelter.address}
+                      </CardDescription>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-gray-500 hover:text-red-500"
+                      onClick={() => handleDeleteClick(shelter.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -217,6 +272,27 @@ const Shelters = () => {
             ))}
           </div>
         )}
+        
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Shelter</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this shelter? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleDeleteCancel}>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                className="bg-red-500 hover:bg-red-600" 
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete Shelter"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

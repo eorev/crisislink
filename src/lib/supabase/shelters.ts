@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import { getCurrentUser } from './auth';
 import type { Shelter } from './types';
@@ -61,4 +62,17 @@ export const updateShelter = async (id: number, updates: Partial<Omit<Shelter, '
   }
   
   return data as Shelter;
+};
+
+export const deleteShelter = async (id: number) => {
+  const { error } = await supabase
+    .from('shelters')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    throw error;
+  }
+  
+  return true;
 };
