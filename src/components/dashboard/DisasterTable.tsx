@@ -73,24 +73,24 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
             <span className="text-sm text-gray-500">Filter by:</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Select onValueChange={(value) => { setSeverityFilter(value || null); handleFilterChange(); }}>
+            <Select onValueChange={(value) => { setSeverityFilter(value === "all" ? null : value); handleFilterChange(); }}>
               <SelectTrigger className="w-[120px] h-8 bg-gray-50 shadow-neumorphic-sm border-0">
                 <SelectValue placeholder="Severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severities</SelectItem>
+                <SelectItem value="all">All Severities</SelectItem>
                 <SelectItem value="Low">Low</SelectItem>
                 <SelectItem value="Medium">Medium</SelectItem>
                 <SelectItem value="High">High</SelectItem>
               </SelectContent>
             </Select>
             
-            <Select onValueChange={(value) => { setStatusFilter(value || null); handleFilterChange(); }}>
+            <Select onValueChange={(value) => { setStatusFilter(value === "all" ? null : value); handleFilterChange(); }}>
               <SelectTrigger className="w-[120px] h-8 bg-gray-50 shadow-neumorphic-sm border-0">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="monitoring">Monitoring</SelectItem>
                 <SelectItem value="recovering">Recovering</SelectItem>
@@ -114,6 +114,7 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
           </div>
         </div>
         
+        {/* Table content */}
         <div className="overflow-x-auto p-4 rounded-lg bg-gray-50 dark:bg-gray-800 shadow-neumorphic-inset dark:shadow-neumorphic-inset-dark">
           <table className="w-full">
             <thead>
