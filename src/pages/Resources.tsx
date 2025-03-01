@@ -32,9 +32,18 @@ const Resources = () => {
         // Create initial resources in database
         for (const resource of resources) {
           try {
+            // Map resource names to valid category types
+            const categoryMap: Record<string, 'Food' | 'Water' | 'Medical' | 'Beds' | 'Power' | 'Other'> = {
+              'Food Supplies': 'Food',
+              'Water Supplies': 'Water',
+              'Medical Supplies': 'Medical',
+              'Emergency Power': 'Power',
+              'Shelter Kits': 'Other'
+            };
+            
             await createResource({
               name: resource.name,
-              category: resource.name.toLowerCase(),
+              category: categoryMap[resource.name] || 'Other',
               total_amount: resource.totalAmount,
               unit: resource.unit,
               shelter_id: null,
