@@ -4,11 +4,12 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import heroImage from '@/assets/coastline.jpg'
 
 const HeroSection = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const { isAuthenticated } = useAuth();
-  
+
   // Simulate loading delay for animations
   useState(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
@@ -25,7 +26,7 @@ const HeroSection = () => {
               AI-Powered Disaster Response
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-none">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-crisisBlue-600 to-crisisBlue-800">Revolutionize</span> Your 
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-crisisBlue-600 to-crisisBlue-800">Revolutionize</span> Your
               <span className="hidden md:inline"> Disaster</span>
               <span className="md:hidden"> Disaster</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-crisisGold-500 to-crisisGold-600"> Response</span>
@@ -51,11 +52,11 @@ const HeroSection = () => {
               )}
             </div>
           </div>
-          
+
           <div className={`relative mt-16 max-w-4xl mx-auto ${isLoaded ? 'animate-fade-in animation-delay-200' : 'opacity-0'}`}>
             <div className="rounded-2xl overflow-hidden shadow-2xl">
-              <img 
-                src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" 
+              <img
+                src={heroImage}
                 alt="Dashboard interface showing disaster management data"
                 className="w-full h-auto object-cover"
                 loading="lazy"
