@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   BarChart2,
   Package,
   Droplet,
@@ -85,19 +85,19 @@ const resourceBarChartData = resourceCategoryData.map(resource => ({
   name: resource.name.split(' ')[0], // Just use the first word for cleaner labels
   amount: resource.totalAmount,
   shelters: resource.shelters,
-  color: resource.name.includes('Food') ? '#10b981' : 
-         resource.name.includes('Water') ? '#2563eb' :
-         resource.name.includes('Medical') ? '#ef4444' :
-         resource.name.includes('Power') ? '#f59e0b' : '#6366f1'
+  color: resource.name.includes('Food') ? '#10b981' :
+    resource.name.includes('Water') ? '#2563eb' :
+      resource.name.includes('Medical') ? '#ef4444' :
+        resource.name.includes('Power') ? '#f59e0b' : '#6366f1'
 }));
 
 const resourceDistributionData = resourceCategoryData.map(resource => ({
   name: resource.name.split(' ')[0],
   value: resource.shelters,
-  color: resource.name.includes('Food') ? '#10b981' : 
-         resource.name.includes('Water') ? '#2563eb' :
-         resource.name.includes('Medical') ? '#ef4444' :
-         resource.name.includes('Power') ? '#f59e0b' : '#6366f1'
+  color: resource.name.includes('Food') ? '#10b981' :
+    resource.name.includes('Water') ? '#2563eb' :
+      resource.name.includes('Medical') ? '#ef4444' :
+        resource.name.includes('Power') ? '#f59e0b' : '#6366f1'
 }));
 
 const COLORS = ['#10b981', '#2563eb', '#ef4444', '#f59e0b', '#6366f1'];
@@ -130,13 +130,12 @@ const Resources = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
           {resourceCategoryData.map((resource) => (
-            <Card 
-              key={resource.id} 
-              className={`border ${
-                resource.status === 'warning' 
-                  ? 'border-amber-300 bg-amber-50/50' 
+            <Card
+              key={resource.id}
+              className={`border ${resource.status === 'warning'
+                  ? 'border-amber-300 bg-amber-50/50'
                   : 'border-gray-200'
-              }`}
+                }`}
             >
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <div className="flex items-center">
@@ -160,11 +159,10 @@ const Resources = () => {
                   <div>
                     <div className="flex items-baseline justify-between">
                       <h3 className="text-2xl font-bold">{resource.totalAmount.toLocaleString()}</h3>
-                      <div className={`flex items-center ${
-                        resource.positiveChange ? 'text-emerald-600' : 'text-red-600'
-                      }`}>
-                        {resource.positiveChange 
-                          ? <PlusCircle className="h-3 w-3 mr-1" /> 
+                      <div className={`flex items-center ${resource.positiveChange ? 'text-emerald-600' : 'text-red-600'
+                        }`}>
+                        {resource.positiveChange
+                          ? <PlusCircle className="h-3 w-3 mr-1" />
                           : <MinusCircle className="h-3 w-3 mr-1" />
                         }
                         <span className="text-sm font-medium">{resource.recentChange} {resource.unit}</span>
@@ -172,7 +170,7 @@ const Resources = () => {
                     </div>
                     <p className="text-sm text-gray-600">Total {resource.unit} available</p>
                   </div>
-                  
+
                   <div className="pt-4 pb-2 flex justify-between items-center">
                     <div className="space-x-2">
                       <Button variant="outline" size="sm">
@@ -199,8 +197,8 @@ const Resources = () => {
           <div className="border-b border-gray-200 mb-12">
             <h2 className="text-2xl font-bold mb-6">Resource Analytics</h2>
           </div>
-          
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+          <div className="grid grid-cols-2 xl:grid-cols-2 gap-8">
             <Card>
               <CardHeader>
                 <CardTitle>Resource Distribution</CardTitle>
@@ -259,7 +257,7 @@ const Resources = () => {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-            
+
             <Card className="xl:col-span-2">
               <CardHeader>
                 <CardTitle>Resource Trend Analysis</CardTitle>
