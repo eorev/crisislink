@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,9 +12,10 @@ import {
   PlusCircle,
   MinusCircle,
   AlertTriangle,
-  ArrowRight
+  ArrowRight,
+  TrendingUp
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
 
 const resourceCategoryData = [
   {
@@ -80,9 +80,8 @@ const resourceCategoryData = [
   }
 ];
 
-// Chart data preparation
 const resourceBarChartData = resourceCategoryData.map(resource => ({
-  name: resource.name.split(' ')[0], // Just use the first word for cleaner labels
+  name: resource.name.split(' ')[0],
   amount: resource.totalAmount,
   shelters: resource.shelters,
   color: resource.name.includes('Food') ? '#10b981' :
@@ -101,6 +100,14 @@ const resourceDistributionData = resourceCategoryData.map(resource => ({
 }));
 
 const COLORS = ['#10b981', '#2563eb', '#ef4444', '#f59e0b', '#6366f1'];
+
+const resourceEfficiencyData = [
+  { name: 'North', efficiency: 92, target: 95 },
+  { name: 'South', efficiency: 88, target: 95 },
+  { name: 'East', efficiency: 96, target: 95 },
+  { name: 'West', efficiency: 85, target: 95 },
+  { name: 'Central', efficiency: 91, target: 95 },
+];
 
 const Resources = () => {
   const analyticsRef = useRef<HTMLDivElement>(null);
@@ -198,7 +205,7 @@ const Resources = () => {
             <h2 className="text-2xl font-bold mb-6">Resource Analytics</h2>
           </div>
 
-          <div className="grid grid-cols-2 xl:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card>
               <CardHeader>
                 <CardTitle>Resource Distribution</CardTitle>
@@ -258,12 +265,42 @@ const Resources = () => {
               </CardContent>
             </Card>
 
-            <Card className="xl:col-span-2">
+            <Card>
               <CardHeader>
-                <CardTitle>Resource Trend Analysis</CardTitle>
+                <CardTitle>Resource Allocation Efficiency</CardTitle>
                 <CardDescription>
-                  Monthly change in resource levels across all shelters
+                  Distribution efficiency by region compared to target
                 </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={resourceEfficiencyData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis domain={[80, 100]} />
+                    <Tooltip />
+                    <Legend />
+                    <Area type="monotone" dataKey="efficiency" name="Current Efficiency" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
+                    <Area type="monotone" dataKey="target" name="Target Efficiency" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Resource Trend Analysis</CardTitle>
+                    <CardDescription>
+                      Monthly change in resource levels across all shelters
+                    </CardDescription>
+                  </div>
+                  <TrendingUp className="h-5 w-5 text-gray-400" />
+                </div>
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
