@@ -3,6 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import RequestSuppliesDialog from './RequestSuppliesDialog';
 
 interface ResourceLevel {
   name: string;
@@ -49,9 +50,13 @@ const ResourceLevelCard = ({ resources }: ResourceLevelCardProps) => {
             </div>
           ))}
         </div>
-        <Button variant="outline" className="w-full mt-6">
-          Request Supplies
-        </Button>
+        <RequestSuppliesDialog 
+          trigger={
+            <Button variant="outline" className="w-full mt-6">
+              Request Supplies
+            </Button>
+          }
+        />
       </CardContent>
     </Card>
   );

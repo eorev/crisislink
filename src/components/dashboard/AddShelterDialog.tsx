@@ -21,8 +21,8 @@ const AddShelterDialog: React.FC<AddShelterDialogProps> = ({ onShelterAdded }) =
     const [formData, setFormData] = useState({
         name: '',
         address: '',
-        capacity: 0,
-        current_occupancy: 0,
+        capacity: '',
+        current_occupancy: '',
         contact_phone: '',
         status: 'operational' as 'operational' | 'limited' | 'closed',
     });
@@ -32,7 +32,7 @@ const AddShelterDialog: React.FC<AddShelterDialogProps> = ({ onShelterAdded }) =
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'capacity' || name === 'current_occupancy' ? parseInt(value) || 0 : value
+            [name]: value
         }));
     };
 
@@ -52,9 +52,16 @@ const AddShelterDialog: React.FC<AddShelterDialogProps> = ({ onShelterAdded }) =
         setIsSubmitting(true);
 
         try {
+            // Convert string numeric values to numbers for the API
+            const numericFormData = {
+                ...formData,
+                capacity: parseInt(formData.capacity) || 0,
+                current_occupancy: parseInt(formData.current_occupancy) || 0,
+            };
+
             // Create the shelter in the database with resources_available
             await createShelter({
-                ...formData,
+                ...numericFormData,
                 last_updated: new Date().toISOString(),
                 resources_available: selectedResources,
             });
@@ -71,8 +78,8 @@ const AddShelterDialog: React.FC<AddShelterDialogProps> = ({ onShelterAdded }) =
             setFormData({
                 name: '',
                 address: '',
-                capacity: 0,
-                current_occupancy: 0,
+                capacity: '',
+                current_occupancy: '',
                 contact_phone: '',
                 status: 'operational',
             });
@@ -156,7 +163,7 @@ const AddShelterDialog: React.FC<AddShelterDialogProps> = ({ onShelterAdded }) =
                                 name="current_occupancy"
                                 type="number"
                                 min="0"
-                                max={formData.capacity}
+                                max={formData.capacity ? parseInt(formData.capacity) : undefined}
                                 value={formData.current_occupancy}
                                 onChange={handleChange}
                                 className="col-span-3"
@@ -217,4 +224,4 @@ const AddShelterDialog: React.FC<AddShelterDialogProps> = ({ onShelterAdded }) =
     );
 };
 
-export default AddShelterDialog; 
+export default AddShelterDialog;
