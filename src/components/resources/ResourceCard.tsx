@@ -55,7 +55,7 @@ const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
               <h3 className="text-2xl font-bold">{resource.totalAmount.toLocaleString()}</h3>
               <div className={`flex items-center ${resource.positiveChange ? 'text-emerald-600' : 'text-red-600'
                 }`}>
-                <span className="text-sm font-medium">{resource.positiveChange ? '+' : '-'}{resource.recentChange} {resource.unit}</span>
+                <span className="text-sm font-medium">{resource.recentChange} {resource.unit}</span>
               </div>
             </div>
             <p className="text-sm text-gray-600">Total {resource.unit} available</p>
