@@ -46,13 +46,12 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
                     </span>
                   </td>
                   <td className="py-3 text-sm">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      disaster.status === 'active' 
-                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
-                        : disaster.status === 'monitoring' 
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' 
-                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                    }`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${disaster.status === 'active'
+                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        : disaster.status === 'monitoring'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                      }`}>
                       {disaster.status.charAt(0).toUpperCase() + disaster.status.slice(1)}
                     </span>
                   </td>
@@ -62,11 +61,9 @@ const DisasterTable = ({ disasters }: DisasterTableProps) => {
             </tbody>
           </table>
         </div>
-        <div className="mt-6 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 shadow-neumorphic dark:shadow-neumorphic-dark border-0 flex justify-center">
-          <Button asChild variant="outline" className="px-6 py-2 bg-gray-50 dark:bg-gray-800 shadow-neumorphic-sm dark:shadow-neumorphic-sm-dark hover:shadow-neumorphic-inset dark:hover:shadow-neumorphic-inset-dark transition-shadow border-0 font-medium">
-            <Link to="/predictions">View AI Predictions</Link>
-          </Button>
-        </div>
+        <Button asChild variant="outline" className="px-6 py-2 bg-gray-50 dark:bg-gray-800 shadow-neumorphic-sm dark:shadow-neumorphic-sm-dark hover:shadow-neumorphic-inset dark:hover:shadow-neumorphic-inset-dark transition-shadow border-0 font-medium">
+          <Link to="/predictions">View AI Predictions</Link>
+        </Button>
       </CardContent>
     </Card>
   );
