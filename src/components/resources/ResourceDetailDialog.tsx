@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -79,6 +78,7 @@ const ResourceDetailDialog = ({
         unit,
         shelter_id: shelterId ? parseInt(shelterId, 10) : undefined,
         alert_threshold: parseInt(alertThreshold, 10),
+        last_updated: new Date().toISOString()
       };
 
       if (resource?.id) {

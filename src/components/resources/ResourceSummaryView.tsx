@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Resource } from '@/lib/supabase/types';
 import ResourceBarChart from './ResourceBarChart';
-import { ShelterCoverageChart } from './ShelterCoverageChart';
+import ShelterCoverageChart from './ShelterCoverageChart';
 import AllocationEfficiencyChart from './AllocationEfficiencyChart';
 
 interface ResourceCategory {
@@ -65,6 +65,24 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     name: category.category,
     value: category.totalAmount
   }));
+
+  // Prepare data for ShelterCoverageChart
+  const shelterCoverageData = resourceCategories.map(category => ({
+    name: category.category,
+    value: category.shelterCount,
+    color: getColorForCategory(category.category)
+  }));
+
+  function getColorForCategory(category: string) {
+    switch (category) {
+      case 'Food': return '#FF6B6B';
+      case 'Water': return '#4ECDC4';
+      case 'Medical': return '#1A535C';
+      case 'Beds': return '#FFE66D';
+      case 'Power': return '#F7B801';
+      default: return '#6B5CA5';
+    }
+  }
 
   const openResourceDetail = (category: ResourceCategory) => {
     setSelectedCategory(category);
@@ -141,7 +159,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
             <CardDescription>Resource distribution across shelters</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <ShelterCoverageChart />
+            <ShelterCoverageChart data={shelterCoverageData} />
           </CardContent>
         </Card>
 
@@ -151,7 +169,14 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
             <CardDescription>Comparing allocated resources to capacity and needs</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <AllocationEfficiencyChart />
+            <AllocationEfficiencyChart 
+              data={resourceCategories.map(category => ({
+                name: category.category,
+                allocated: category.totalAmount,
+                capacity: category.totalAmount * 1.5, // Example data
+                needs: category.totalAmount * 0.8    // Example data
+              }))}
+            />
           </CardContent>
         </Card>
       </div>
