@@ -2,11 +2,12 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Phone, Clock, Trash2, Package } from 'lucide-react';
+import { MapPin, Users, Phone, Clock, Trash2, Package, Info } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { ShelterWithResources } from '@/components/shelters/ShelterTypes';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import ResourcesSelector from '@/components/dashboard/ResourcesSelector';
+import ShelterDetailsDialog from './ShelterDetailsDialog';
 
 interface ShelterCardProps {
   shelter: ShelterWithResources;
@@ -96,18 +97,33 @@ export const ShelterCard = ({ shelter, onDeleteClick }: ShelterCardProps) => {
             </div>
           </div>
           
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="w-full flex items-center gap-2 mt-2"
-              >
-                <Package className="h-4 w-4" />
-                Add Resources
-              </Button>
-            </DialogTrigger>
-            <ResourcesSelector shelterId={shelter.id} shelterName={shelter.name} />
-          </Dialog>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <Info className="h-4 w-4" />
+                  View Details
+                </Button>
+              </DialogTrigger>
+              <ShelterDetailsDialog shelter={shelter} />
+            </Dialog>
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <Package className="h-4 w-4" />
+                  Add Resources
+                </Button>
+              </DialogTrigger>
+              <ResourcesSelector shelterId={shelter.id} shelterName={shelter.name} />
+            </Dialog>
+          </div>
         </div>
       </CardContent>
     </Card>
