@@ -1,227 +1,254 @@
+
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from "sonner";
+import { Building, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { createShelter } from '@/lib/supabase/shelters';
-import { toast } from '@/components/ui/use-toast';
-import { Plus } from 'lucide-react';
-import ResourcesSelector from './ResourcesSelector';
 
-type Resource = 'Food' | 'Water' | 'Medical' | 'Beds' | 'Power' | 'Other';
+// Create a schema for form validation
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Shelter name must be at least 2 characters.",
+  }),
+  address: z.string().min(5, {
+    message: "Please provide a valid address.",
+  }),
+  capacity: z.coerce.number().min(1, {
+    message: "Capacity must be at least 1.",
+  }),
+  occupancy: z.coerce.number().min(0, {
+    message: "Occupancy cannot be negative.",
+  }).optional(),
+  phone: z.string().min(10, {
+    message: "Please provide a valid phone number.",
+  }),
+  status: z.enum(["operational", "limited", "closed"], {
+    message: "Please select a valid status.",
+  }),
+});
 
-type AddShelterDialogProps = {
-    onShelterAdded: () => void;
-};
+type FormValues = z.infer<typeof formSchema>;
+
+interface AddShelterDialogProps {
+  onShelterAdded: () => void;
+}
 
 const AddShelterDialog: React.FC<AddShelterDialogProps> = ({ onShelterAdded }) => {
-    const [open, setOpen] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        address: '',
-        capacity: '',
-        current_occupancy: '',
-        contact_phone: '',
-        status: 'operational' as 'operational' | 'limited' | 'closed',
-    });
-    const [selectedResources, setSelectedResources] = useState<Resource[]>([]);
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+  // Initialize the form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      address: "",
+      capacity: 100,
+      occupancy: 0,
+      phone: "",
+      status: "operational",
+    },
+  });
 
-    const handleStatusChange = (value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            status: value as 'operational' | 'limited' | 'closed'
-        }));
-    };
+  // Form submission handler
+  const onSubmit = async (values: FormValues) => {
+    setIsSubmitting(true);
+    try {
+      // Create new shelter in the database
+      await createShelter({
+        name: values.name,
+        address: values.address,
+        capacity: values.capacity,
+        current_occupancy: values.occupancy || 0,
+        contact_phone: values.phone,
+        status: values.status,
+        // Add default resources based on capacity
+        resources_available: ["Food", "Water", "Medical"]
+      });
 
-    const handleResourcesChange = (resources: Resource[]) => {
-        setSelectedResources(resources);
-    };
+      // Reset form and close dialog
+      form.reset();
+      setOpen(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
+      // Notify parent component that a shelter was added
+      onShelterAdded();
+      toast.success("Shelter added successfully!");
+    } catch (error) {
+      console.error("Error adding shelter:", error);
+      toast.error("Failed to add shelter. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-        try {
-            // Convert string numeric values to numbers for the API
-            const numericFormData = {
-                ...formData,
-                capacity: parseInt(formData.capacity) || 0,
-                current_occupancy: parseInt(formData.current_occupancy) || 0,
-            };
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Add Shelter
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <DialogTitle>Add New Shelter</DialogTitle>
+          <DialogDescription>
+            Enter the details for the new disaster relief shelter.
+          </DialogDescription>
+        </DialogHeader>
 
-            // Create the shelter in the database with resources_available
-            await createShelter({
-                ...numericFormData,
-                last_updated: new Date().toISOString(),
-                resources_available: selectedResources,
-            });
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Shelter Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Community Center" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            toast({
-                title: "Success",
-                description: "Shelter has been added successfully.",
-            });
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Main St, City, State" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            setOpen(false);
-            onShelterAdded();
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="capacity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Capacity</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="1" {...field} />
+                    </FormControl>
+                    <FormDescription>Maximum number of people</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            // Reset form
-            setFormData({
-                name: '',
-                address: '',
-                capacity: '',
-                current_occupancy: '',
-                contact_phone: '',
-                status: 'operational',
-            });
-            setSelectedResources([]);
-        } catch (error) {
-            console.error('Error adding shelter:', error);
-            toast({
-                title: "Error",
-                description: "Failed to add shelter. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+              <FormField
+                control={form.control}
+                name="occupancy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Occupancy</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="0" {...field} />
+                    </FormControl>
+                    <FormDescription>Current number of people</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button className="bg-crisisBlue-600 hover:bg-crisisBlue-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add New Shelter
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Add New Shelter</DialogTitle>
-                    <DialogDescription>
-                        Enter the details for the new disaster relief shelter.
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">
-                                Name
-                            </Label>
-                            <Input
-                                id="name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="address" className="text-right">
-                                Address
-                            </Label>
-                            <Input
-                                id="address"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleChange}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="capacity" className="text-right">
-                                Capacity
-                            </Label>
-                            <Input
-                                id="capacity"
-                                name="capacity"
-                                type="number"
-                                min="0"
-                                value={formData.capacity}
-                                onChange={handleChange}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="current_occupancy" className="text-right">
-                                Current Occupancy
-                            </Label>
-                            <Input
-                                id="current_occupancy"
-                                name="current_occupancy"
-                                type="number"
-                                min="0"
-                                max={formData.capacity ? parseInt(formData.capacity) : undefined}
-                                value={formData.current_occupancy}
-                                onChange={handleChange}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="contact_phone" className="text-right">
-                                Contact Phone
-                            </Label>
-                            <Input
-                                id="contact_phone"
-                                name="contact_phone"
-                                value={formData.contact_phone}
-                                onChange={handleChange}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="status" className="text-right">
-                                Status
-                            </Label>
-                            <Select
-                                value={formData.status}
-                                onValueChange={handleStatusChange}
-                            >
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="operational">Operational</SelectItem>
-                                    <SelectItem value="limited">Limited</SelectItem>
-                                    <SelectItem value="closed">Closed</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-4 items-start gap-4">
-                            <Label className="text-right pt-2">
-                                Resources
-                            </Label>
-                            <div className="col-span-3">
-                                <ResourcesSelector
-                                    selectedResources={selectedResources}
-                                    onChange={handleResourcesChange}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? 'Adding...' : 'Add Shelter'}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    );
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(555) 123-4567" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex space-x-2"
+                    >
+                      <FormItem className="flex items-center space-x-1 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="operational" />
+                        </FormControl>
+                        <FormLabel className="font-normal text-green-600">
+                          Operational
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-1 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="limited" />
+                        </FormControl>
+                        <FormLabel className="font-normal text-amber-600">
+                          Limited
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-1 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="closed" />
+                        </FormControl>
+                        <FormLabel className="font-normal text-red-600">
+                          Closed
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Adding..." : "Add Shelter"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 export default AddShelterDialog;

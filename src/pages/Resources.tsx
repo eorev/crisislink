@@ -7,7 +7,6 @@ import { getResources } from '@/lib/supabase/resources';
 import { toast } from "sonner";
 import type { Resource } from '@/lib/supabase/types';
 import ResourceSummaryView from '@/components/resources/ResourceSummaryView';
-import { Button } from '@/components/ui/button';
 import ResourceDetailDialog from '@/components/resources/ResourceDetailDialog';
 
 const ResourcesPage = () => {
@@ -42,13 +41,7 @@ const ResourcesPage = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Resource Inventory</h1>
             <p className="text-gray-600">Overview of all disaster relief resources</p>
           </div>
-          <Button 
-            className="flex items-center gap-2" 
-            onClick={() => setIsDetailDialogOpen(true)}
-          >
-            <Package className="h-4 w-4" />
-            Add Resources
-          </Button>
+          {/* Add Resources button removed as requested */}
         </div>
 
         {error ? (
