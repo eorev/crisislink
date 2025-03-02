@@ -1,3 +1,4 @@
+
 // Re-export client
 export * from './client';
 
@@ -10,8 +11,15 @@ export * from './types';
 // Re-export shelter operations
 export * from './shelters';
 
-// Re-export resource operations
-export * from './resources';
+// Re-export resource operations - explicitly avoiding the getShelterById conflict
+export {
+  getResources,
+  getResourcesByShelter,
+  createResource,
+  updateResource,
+  deleteResource,
+  allocateResource
+} from './resources';
 
 // Re-export disaster operations
 export * from './disasters';
