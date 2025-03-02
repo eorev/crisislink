@@ -1,3 +1,4 @@
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '@/lib/env';
 
@@ -17,6 +18,7 @@ const model = googleAI('gemini-1.5-pro-latest', {
   structuredOutputs: true,
   useSearchGrounding: true,
 });
+
 // Define types for historical and forecast data
 export interface HistoricalDisasterData {
   id: number;
@@ -57,16 +59,35 @@ export interface PredictionResponse {
 // Initialize the Google Generative AI with the API key
 export const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 
-// Get the generative model - using the latest model name
-//export const geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+// In-memory prediction cache with TTL
+interface PredictionCache {
+  data: PredictionResponse;
+  timestamp: number;
+  zipCode?: string;
+}
+
+const PREDICTION_CACHE: Record<string, PredictionCache> = {};
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 // Function to analyze disaster data and generate predictions
 export async function analyzePredictions(
   historicalData: HistoricalDisasterData[],
-  
   userZipCode?: string
 ): Promise<PredictionResponse> {
   try {
+    // Create cache key based on inputs
+    const historyHash = JSON.stringify(historicalData).length.toString(); // Simple hash
+    const cacheKey = `${historyHash}_${userZipCode || 'no_zip'}`;
+    
+    // Check if we have valid cached data
+    const now = Date.now();
+    const cachedPrediction = PREDICTION_CACHE[cacheKey];
+    
+    if (cachedPrediction && (now - cachedPrediction.timestamp < CACHE_TTL)) {
+      console.log('Using cached prediction from Gemini API');
+      return cachedPrediction.data;
+    }
+    
     // Check if API key is available
     if (!env.GEMINI_API_KEY) {
       console.warn('No Gemini API key found. Using alternative prediction method.');
@@ -99,8 +120,6 @@ export async function analyzePredictions(
       Historical Disaster Data:
       ${JSON.stringify(historicalData, null, 2)}
       
-      
-      
       Based on this data, provide a structured analysis of potential disaster risks in the following JSON format:
       {
         "predictions": [
@@ -119,9 +138,8 @@ export async function analyzePredictions(
       Only respond with the JSON, no additional text.
     `;
 
-    console.log('Sending prompt to Gemini with zip code:', prompt, userZipCode);
+    console.log('Sending prompt to Gemini with zip code:', userZipCode);
     
-
     const result = await generateObject({
       model,
       prompt,
@@ -145,6 +163,14 @@ export async function analyzePredictions(
       predictions,
       summary,
     };
+    
+    // Cache the result
+    PREDICTION_CACHE[cacheKey] = {
+      data: parsedResponse,
+      timestamp: now,
+      zipCode: userZipCode
+    };
+    
     console.log('Successfully received predictions from Gemini', parsedResponse);
     return parsedResponse as PredictionResponse;
   } catch (error) {

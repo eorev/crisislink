@@ -11,6 +11,15 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
+interface CachedPredictions {
+    data: PredictionResponse;
+    timestamp: number;
+    zipCode: string | undefined;
+}
+
+const PREDICTIONS_CACHE: Record<string, CachedPredictions> = {};
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes cache TTL
+
 const DisasterPredictions = () => {
     const [predictions, setPredictions] = useState<PredictionResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -18,21 +27,33 @@ const DisasterPredictions = () => {
     const { profile } = useAuth();
     const { toast } = useToast();
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    
+    const cacheKey = `predictions_${profile?.area_code || 'default'}`;
 
-    const fetchPredictions = useCallback(async () => {
+    const fetchPredictions = useCallback(async (forceRefresh = false) => {
         try {
+            const now = Date.now();
+            const cachedData = PREDICTIONS_CACHE[cacheKey];
+            
+            if (!forceRefresh && 
+                cachedData && 
+                (now - cachedData.timestamp < CACHE_TTL_MS) &&
+                cachedData.zipCode === profile?.area_code) {
+                console.log('Using cached predictions data');
+                setPredictions(cachedData.data);
+                setLastUpdated(new Date(cachedData.timestamp));
+                setIsLoading(false);
+                return;
+            }
+            
             setIsLoading(true);
             setError(null);
 
-            // Fetch historical and forecast data
             const historicalData = await getHistoricalDisasterData();
-            // const forecastData = await getWeatherForecastData();
-
-            // Use area_code as zip code
+            
             const userZipCode = profile?.area_code;
             console.log('Fetching predictions with zip code:', userZipCode);
 
-            // Analyze data with Gemini, passing the user's zip code if available
             const predictionResults = await analyzePredictions(
                 historicalData,
                 userZipCode
@@ -40,19 +61,25 @@ const DisasterPredictions = () => {
 
             console.log('Prediction results:', predictionResults);
 
+            PREDICTIONS_CACHE[cacheKey] = {
+                data: predictionResults,
+                timestamp: now,
+                zipCode: userZipCode
+            };
+
             setPredictions(predictionResults);
             setLastUpdated(new Date());
 
-            // Show success toast
-            toast({
-                title: "Predictions updated",
-                description: `Successfully fetched disaster predictions${userZipCode ? ` for zip code ${userZipCode}` : ''}.`,
-                variant: "default",
-            });
+            if (forceRefresh) {
+                toast({
+                    title: "Predictions updated",
+                    description: `Successfully fetched disaster predictions${userZipCode ? ` for zip code ${userZipCode}` : ''}.`,
+                    variant: "default",
+                });
+            }
         } catch (err) {
             console.error('Error fetching predictions:', err);
 
-            // Provide a more specific error message based on the error
             if (err instanceof Error) {
                 if (err.message.includes('404')) {
                     setError('The AI model is currently unavailable. This could be due to an API version mismatch or model unavailability.');
@@ -65,26 +92,26 @@ const DisasterPredictions = () => {
                 setError('Failed to generate disaster predictions. Please try again later.');
             }
 
-            // Show error toast
-            toast({
-                title: "Error updating predictions",
-                description: "There was a problem fetching the latest predictions. Showing fallback data.",
-                variant: "destructive",
-            });
+            if (forceRefresh) {
+                toast({
+                    title: "Error updating predictions",
+                    description: "There was a problem fetching the latest predictions.",
+                    variant: "destructive",
+                });
+            }
         } finally {
             setIsLoading(false);
         }
-    }, [profile?.area_code, toast]); // Add dependencies that the function uses
+    }, [profile?.area_code, toast, cacheKey]);
 
     useEffect(() => {
-        fetchPredictions();
-    }, [fetchPredictions]); // Now fetchPredictions is a dependency
+        fetchPredictions(false);
+    }, [profile?.area_code]);
 
     const handleRefresh = () => {
-        fetchPredictions();
+        fetchPredictions(true);
     };
 
-    // Format the last updated time
     const formatLastUpdated = () => {
         if (!lastUpdated) return '';
 
@@ -105,7 +132,6 @@ const DisasterPredictions = () => {
         return `${diffDays} days ago`;
     };
 
-    // Helper function to get the appropriate icon for a disaster type
     const getDisasterIcon = (disasterType: string) => {
         const type = disasterType.toLowerCase();
         if (type.includes('flood') || type.includes('water')) return <Droplets className="h-5 w-5 text-blue-500" />;
@@ -114,7 +140,6 @@ const DisasterPredictions = () => {
         return <AlertCircle className="h-5 w-5 text-gray-500" />;
     };
 
-    // Helper function to get the appropriate color for severity
     const getSeverityColor = (severity: string) => {
         switch (severity) {
             case 'High':
@@ -128,7 +153,6 @@ const DisasterPredictions = () => {
         }
     };
 
-    // Get unique locations from predictions
     const getUniqueLocations = () => {
         if (!predictions?.predictions) return [];
 
@@ -292,4 +316,4 @@ const DisasterPredictions = () => {
     );
 };
 
-export default DisasterPredictions; 
+export default DisasterPredictions;
