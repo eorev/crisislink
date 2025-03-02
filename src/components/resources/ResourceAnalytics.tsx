@@ -15,12 +15,13 @@ const ResourceAnalytics = () => {
     { name: 'Power', value: 5 }
   ];
 
-  const shelterDistribution = [
-    { name: 'Shelter A', allocated: 80, capacity: 100, needs: 90 },
-    { name: 'Shelter B', allocated: 65, capacity: 90, needs: 75 },
-    { name: 'Shelter C', allocated: 90, capacity: 95, needs: 85 },
-    { name: 'Shelter D', allocated: 50, capacity: 70, needs: 65 },
-    { name: 'Shelter E', allocated: 75, capacity: 85, needs: 80 }
+  // Fixed the shelterDistribution data to match the expected type for ShelterCoverageChart
+  const shelterCoverageData = [
+    { name: 'Shelter A', value: 80, color: '#0088FE' },
+    { name: 'Shelter B', value: 65, color: '#00C49F' },
+    { name: 'Shelter C', value: 90, color: '#FFBB28' },
+    { name: 'Shelter D', value: 50, color: '#FF8042' },
+    { name: 'Shelter E', value: 75, color: '#8884d8' }
   ];
 
   return (
@@ -37,7 +38,7 @@ const ResourceAnalytics = () => {
       
       <div className="bg-white rounded-lg shadow p-4">
         <h3 className="text-lg font-semibold mb-4">Shelter Resource Coverage</h3>
-        <ShelterCoverageChart data={shelterDistribution} />
+        <ShelterCoverageChart data={shelterCoverageData} />
       </div>
       
       <div className="bg-white rounded-lg shadow p-4">
