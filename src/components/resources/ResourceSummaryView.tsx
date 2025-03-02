@@ -50,7 +50,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
       case 'Medical': return '#1A535C';
       case 'Beds': return '#FFE66D';
       case 'Power': return '#F7B801';
-      case 'Other': return '#6B5CA5'; // Ensure Other has a specific color
+      case 'Other': return '#6B5CA5'; // Keep color for Other in case it's needed elsewhere
       default: return '#6B5CA5';
     }
   }
@@ -117,27 +117,33 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     return acc;
   }, {} as Record<string, ResourceCategory>);
 
-  const resourceCategories = Object.values(resourcesByCategory);
+  // Filter out the "Other" category
+  const filteredResourceCategories = Object.values(resourcesByCategory).filter(
+    category => category.category !== 'Other'
+  );
+  
   const shelterResourceDistribution = getResourceDistribution();
 
   // Update shelter counts for each category based on the distribution data
-  resourceCategories.forEach(category => {
+  filteredResourceCategories.forEach(category => {
     const categoryName = category.category as keyof typeof shelterResourceDistribution;
     category.shelterCount = shelterResourceDistribution[categoryName] || 0;
   });
 
-  // Prepare data for ResourceBarChart
-  const chartData = resourceCategories.map(category => ({
+  // Prepare data for ResourceBarChart - filter out "Other" here too
+  const chartData = filteredResourceCategories.map(category => ({
     name: category.category,
     value: category.totalAmount
   }));
 
-  // Prepare data for ShelterCoverageChart
-  const shelterCoverageData = Object.entries(shelterResourceDistribution).map(([category, count]) => ({
-    name: category,
-    value: count,
-    color: getColorForCategory(category)
-  }));
+  // Prepare data for ShelterCoverageChart - filter out "Other" here too
+  const shelterCoverageData = Object.entries(shelterResourceDistribution)
+    .filter(([category]) => category !== 'Other')
+    .map(([category, count]) => ({
+      name: category,
+      value: count,
+      color: getColorForCategory(category)
+    }));
 
   // Helper function to calculate percentage width for the resource bar
   const calculateBarWidth = (amount: number, maxAmount: number) => {
@@ -195,7 +201,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {resourceCategories.map((category) => (
+        {filteredResourceCategories.map((category) => (
           <Card key={category.category} className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="flex justify-between items-center">
