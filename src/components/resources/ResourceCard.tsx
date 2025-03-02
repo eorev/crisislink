@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   AlertTriangle,
@@ -8,9 +8,10 @@ import {
 } from 'lucide-react';
 import ResourceDetailDialog from './ResourceDetailDialog';
 import ResourceActionDialog from './ResourceActionDialog';
+import { Resource } from '@/lib/supabase/types';
 
 interface ResourceCardProps {
-  resource: {
+  resourceData: {
     id: number;
     name: string;
     icon: React.ReactNode;
@@ -25,10 +26,27 @@ interface ResourceCardProps {
   onResourceUpdated: () => void;
 }
 
-const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
+const ResourceCard = ({ resourceData, onResourceUpdated }: ResourceCardProps) => {
+  // Create a properly typed Resource object for passing to ResourceDetailDialog
+  const resourceForDetailDialog: Resource = {
+    id: resourceData.id,
+    name: resourceData.name,
+    category: resourceData.name.includes('Food') ? 'Food' : 
+             resourceData.name.includes('Water') ? 'Water' : 
+             resourceData.name.includes('Medical') ? 'Medical' :
+             resourceData.name.includes('Beds') ? 'Beds' :
+             resourceData.name.includes('Power') ? 'Power' : 'Other',
+    total_amount: resourceData.totalAmount,
+    unit: resourceData.unit,
+    created_at: new Date().toISOString(),
+    last_updated: new Date().toISOString(),
+    alert_threshold: Math.floor(resourceData.totalAmount * 0.2),
+    user_id: 'system'
+  };
+
   return (
     <Card
-      className={`border ${resource.status === 'warning'
+      className={`border ${resourceData.status === 'warning'
         ? 'border-amber-300 bg-amber-50/50'
         : 'border-gray-200'
         }`}
@@ -36,17 +54,17 @@ const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <div className="flex items-center">
           <div className="mr-3 p-2 bg-white rounded-full shadow-sm">
-            {resource.icon}
+            {resourceData.icon}
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold">{resource.name}</CardTitle>
-            <CardDescription>Distributed across {resource.shelters} shelters</CardDescription>
+            <CardTitle className="text-lg font-semibold">{resourceData.name}</CardTitle>
+            <CardDescription>Distributed across {resourceData.shelters} shelters</CardDescription>
           </div>
         </div>
-        {resource.alerts > 0 && (
+        {resourceData.alerts > 0 && (
           <div className="flex items-center text-amber-600">
             <AlertTriangle className="h-4 w-4 mr-1" />
-            <span className="text-xs font-medium">{resource.alerts}</span>
+            <span className="text-xs font-medium">{resourceData.alerts}</span>
           </div>
         )}
       </CardHeader>
@@ -54,22 +72,22 @@ const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
         <div className="space-y-4">
           <div>
             <div className="flex items-baseline justify-between">
-              <h3 className="text-2xl font-bold">{resource.totalAmount.toLocaleString()}</h3>
-              <div className={`flex items-center ${resource.positiveChange ? 'text-emerald-600' : 'text-red-600'
+              <h3 className="text-2xl font-bold">{resourceData.totalAmount.toLocaleString()}</h3>
+              <div className={`flex items-center ${resourceData.positiveChange ? 'text-emerald-600' : 'text-red-600'
                 }`}>
-                <span className="text-sm font-medium">{resource.recentChange} {resource.unit}</span>
+                <span className="text-sm font-medium">{resourceData.recentChange} {resourceData.unit}</span>
               </div>
             </div>
-            <p className="text-sm text-gray-600">Total {resource.unit} available</p>
+            <p className="text-sm text-gray-600">Total {resourceData.unit} available</p>
           </div>
 
           <div className="pt-4 pb-2 flex justify-between items-center">
             <div className="space-x-2">
               <ResourceActionDialog 
-                resourceId={resource.id}
-                resourceName={resource.name}
-                totalAmount={resource.totalAmount}
-                unit={resource.unit}
+                resourceId={resourceData.id}
+                resourceName={resourceData.name}
+                totalAmount={resourceData.totalAmount}
+                unit={resourceData.unit}
                 isAdding={true}
                 onSuccess={onResourceUpdated}
               >
@@ -78,10 +96,10 @@ const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
               </ResourceActionDialog>
               
               <ResourceActionDialog 
-                resourceId={resource.id}
-                resourceName={resource.name}
-                totalAmount={resource.totalAmount}
-                unit={resource.unit}
+                resourceId={resourceData.id}
+                resourceName={resourceData.name}
+                totalAmount={resourceData.totalAmount}
+                unit={resourceData.unit}
                 isAdding={false}
                 onSuccess={onResourceUpdated}
               >
@@ -91,7 +109,7 @@ const ResourceCard = ({ resource, onResourceUpdated }: ResourceCardProps) => {
             </div>
             
             <ResourceDetailDialog 
-              resource={resource}
+              resource={resourceForDetailDialog}
             />
           </div>
         </div>
