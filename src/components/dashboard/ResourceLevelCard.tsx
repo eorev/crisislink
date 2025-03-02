@@ -137,7 +137,10 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
             <div className="mt-6 pt-4 border-t border-gray-200">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="default" className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    variant="outline" 
+                    className="w-full bg-gray-50 hover:bg-gray-100 shadow-neumorphic border-0 text-crisisBlue-600 font-medium transition-all hover:shadow-neumorphic-sm"
+                  >
                     Request Resources
                   </Button>
                 </DialogTrigger>
