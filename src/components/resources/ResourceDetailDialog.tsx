@@ -1,107 +1,210 @@
 
-import React from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import type { ResourceCategory } from './ResourceData';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { createResource, updateResource } from '@/lib/supabase/resources';
+import { getShelters } from '@/lib/supabase/shelters';
+import { Resource } from '@/lib/supabase/types';
+import { toast } from 'sonner';
 
 interface ResourceDetailDialogProps {
-  resource: ResourceCategory;
-  trigger?: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  resource?: Resource;
+  onResourceSaved: () => void;
 }
 
-const ResourceDetailDialog = ({ resource, trigger }: ResourceDetailDialogProps) => {
-  const getStatusColor = () => {
-    if (resource.status === 'warning') return 'text-amber-600';
-    if (resource.positiveChange) return 'text-emerald-600';
-    return 'text-red-600';
+const ResourceDetailDialog = ({
+  open,
+  onOpenChange,
+  resource,
+  onResourceSaved,
+}: ResourceDetailDialogProps) => {
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState<string>('');
+  const [totalAmount, setTotalAmount] = useState('0');
+  const [unit, setUnit] = useState('');
+  const [shelterId, setShelterId] = useState<string>('');
+  const [alertThreshold, setAlertThreshold] = useState('0');
+  const [shelters, setShelters] = useState<{ id: number; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      // Reset form or populate with resource data
+      if (resource) {
+        setName(resource.name);
+        setCategory(resource.category);
+        setTotalAmount(resource.total_amount.toString());
+        setUnit(resource.unit);
+        setShelterId(resource.shelter_id?.toString() || '');
+        setAlertThreshold(resource.alert_threshold.toString());
+      } else {
+        // Default values for new resource
+        setName('');
+        setCategory('Food');
+        setTotalAmount('0');
+        setUnit('');
+        setShelterId('');
+        setAlertThreshold('0');
+      }
+
+      // Fetch shelters for dropdown
+      const fetchShelters = async () => {
+        try {
+          const fetchedShelters = await getShelters();
+          setShelters(fetchedShelters.map(s => ({ id: s.id, name: s.name })));
+        } catch (error) {
+          console.error('Error fetching shelters:', error);
+          toast.error('Failed to load shelters');
+        }
+      };
+
+      fetchShelters();
+    }
+  }, [open, resource]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const resourceData = {
+        name,
+        category: category as Resource['category'],
+        total_amount: parseInt(totalAmount, 10),
+        unit,
+        shelter_id: shelterId ? parseInt(shelterId, 10) : undefined,
+        alert_threshold: parseInt(alertThreshold, 10),
+      };
+
+      if (resource?.id) {
+        await updateResource(resource.id, resourceData);
+      } else {
+        await createResource(resourceData);
+      }
+
+      onResourceSaved();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error saving resource:', error);
+      toast.error('Failed to save resource');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="ghost" size="sm" className="text-crisisBlue-600">
-            Details
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span className="p-2 bg-white rounded-full shadow-sm">
-              {resource.icon}
-            </span>
-            {resource.name}
-          </DialogTitle>
-          <DialogDescription>
-            Detailed information about current supplies and distribution
-          </DialogDescription>
+          <DialogTitle>{resource ? 'Edit Resource' : 'Add New Resource'}</DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4 py-2">
-          <div className="flex justify-between items-baseline">
-            <h3 className="text-2xl font-bold">{resource.totalAmount.toLocaleString()} {resource.unit}</h3>
-            <span className={`text-sm font-medium ${getStatusColor()}`}>
-              {resource.positiveChange ? '+' : '-'}{resource.recentChange} {resource.unit}
-            </span>
-          </div>
-          
-          <div className="space-y-1">
-            <div className="flex justify-between text-sm">
-              <span>Distribution Status</span>
-              <span className={resource.status === 'warning' ? 'text-amber-600 font-medium' : 'text-emerald-600 font-medium'}>
-                {resource.status === 'warning' ? 'Needs Attention' : 'Normal'}
-              </span>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Resource Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Water Bottles"
+                required
+              />
             </div>
-            <Progress value={resource.status === 'warning' ? 65 : 85} 
-              className={`h-2 ${resource.status === 'warning' ? 'bg-amber-100' : 'bg-emerald-100'}`}
-              indicatorClassName={resource.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'} 
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 pt-2">
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-xs text-gray-500">Active Shelters</p>
-              <p className="font-semibold">{resource.shelters}</p>
+
+            <div className="grid gap-2">
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={category}
+                onValueChange={setCategory}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Food">Food</SelectItem>
+                  <SelectItem value="Water">Water</SelectItem>
+                  <SelectItem value="Medical">Medical</SelectItem>
+                  <SelectItem value="Beds">Beds</SelectItem>
+                  <SelectItem value="Power">Power</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-xs text-gray-500">Alert Conditions</p>
-              <p className="font-semibold">{resource.alerts}</p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="totalAmount">Amount</Label>
+                <Input
+                  id="totalAmount"
+                  value={totalAmount}
+                  onChange={(e) => setTotalAmount(e.target.value)}
+                  type="number"
+                  min="0"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="unit">Unit</Label>
+                <Input
+                  id="unit"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  placeholder="e.g., bottles, meals, kits"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="shelter">Shelter (optional)</Label>
+              <Select
+                value={shelterId}
+                onValueChange={setShelterId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a shelter or leave empty for central storage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Central Storage</SelectItem>
+                  {shelters.map((shelter) => (
+                    <SelectItem key={shelter.id} value={shelter.id.toString()}>
+                      {shelter.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="alertThreshold">Alert Threshold</Label>
+              <Input
+                id="alertThreshold"
+                value={alertThreshold}
+                onChange={(e) => setAlertThreshold(e.target.value)}
+                type="number"
+                min="0"
+                required
+              />
+              <p className="text-xs text-gray-500">
+                You'll receive alerts when the resource falls below this threshold
+              </p>
             </div>
           </div>
-          
-          <div className="bg-gray-50 p-3 rounded-lg mt-4">
-            <p className="text-xs text-gray-500 mb-1">Supply Distribution</p>
-            <ul className="text-sm space-y-2">
-              <li className="flex justify-between">
-                <span>Northern Region</span>
-                <span className="font-medium">{Math.round(resource.totalAmount * 0.3).toLocaleString()} {resource.unit}</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Southern Region</span>
-                <span className="font-medium">{Math.round(resource.totalAmount * 0.25).toLocaleString()} {resource.unit}</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Eastern Region</span>
-                <span className="font-medium">{Math.round(resource.totalAmount * 0.2).toLocaleString()} {resource.unit}</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Western Region</span>
-                <span className="font-medium">{Math.round(resource.totalAmount * 0.25).toLocaleString()} {resource.unit}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Saving...' : resource ? 'Update Resource' : 'Add Resource'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
