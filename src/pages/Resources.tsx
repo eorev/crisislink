@@ -1,122 +1,156 @@
-
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
-import { BarChart2 } from 'lucide-react';
-import ResourceCard from '@/components/resources/ResourceCard';
-import ResourceAnalytics from '@/components/resources/ResourceAnalytics';
-import { createResourceCategoryData } from '@/components/resources/ResourceData';
-import { getResources } from '@/lib/supabase/resources';
-import { getShelters } from '@/lib/supabase/shelters';
-import { Resource, Shelter } from '@/lib/supabase/types';
-import { toast } from 'sonner';
-import { initializeShelters } from '@/lib/supabase/initialData';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CircleDollarSign, Home, Package, AlertTriangle } from 'lucide-react';
+import { getResources, getShelterById } from '@/lib/supabase/resources';
+import { initializeResources } from '@/lib/supabase/initialData';
+import type { Resource } from '@/lib/supabase/types';
+import { format } from 'date-fns';
+import { toast } from "sonner";
 
-const Resources = () => {
-  const analyticsRef = useRef<HTMLDivElement>(null);
-  const [resources, setResources] = useState(createResourceCategoryData());
+// Define a type that extends Resource with optional shelter information
+type ResourceWithShelter = Resource & {
+  shelter?: {
+    id: number;
+    name: string;
+    address: string;
+  } | null;
+};
+
+// Fallback data in case the database fetch fails
+const sampleResourceData: ResourceWithShelter[] = [
+  {
+    id: 1,
+    name: 'Food Supplies',
+    category: 'Food',
+    total_amount: 1500,
+    unit: 'meals',
+    shelter_id: 1,
+    created_at: '2023-01-01T00:00:00Z',
+    last_updated: '2023-01-01T00:00:00Z',
+    alert_threshold: 300,
+    user_id: '00000000-0000-0000-0000-000000000000',
+    shelter: {
+      id: 1,
+      name: 'Central Community Center',
+      address: '123 Main St, Cityville'
+    }
+  },
+  {
+    id: 2,
+    name: 'Water Bottles',
+    category: 'Water',
+    total_amount: 3000,
+    unit: 'bottles',
+    shelter_id: 2,
+    created_at: '2023-01-01T00:00:00Z',
+    last_updated: '2023-01-01T00:00:00Z',
+    alert_threshold: 600,
+    user_id: '00000000-0000-0000-0000-000000000000',
+    shelter: {
+      id: 2,
+      name: 'Riverside Emergency Shelter',
+      address: '456 River Rd, Townsburg'
+    }
+  },
+  {
+    id: 3,
+    name: 'Medical Kits',
+    category: 'Medical',
+    total_amount: 200,
+    unit: 'kits',
+    shelter_id: 3,
+    created_at: '2023-01-01T00:00:00Z',
+    last_updated: '2023-01-01T00:00:00Z',
+    alert_threshold: 40,
+    user_id: '00000000-0000-0000-0000-000000000000',
+    shelter: {
+      id: 3,
+      name: 'Eastside High School',
+      address: '789 East Ave, Villageton'
+    }
+  },
+  {
+    id: 4,
+    name: 'Beds',
+    category: 'Beds',
+    total_amount: 100,
+    unit: 'units',
+    shelter_id: 4,
+    created_at: '2023-01-01T00:00:00Z',
+    last_updated: '2023-01-01T00:00:00Z',
+    alert_threshold: 20,
+    user_id: '00000000-0000-0000-0000-000000000000',
+    shelter: {
+      id: 4,
+      name: 'North District Armory',
+      address: '321 North Blvd, Hamletville'
+    }
+  }
+];
+
+const ResourcesPage = () => {
+  const [resources, setResources] = useState<ResourceWithShelter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [shelters, setShelters] = useState<Shelter[]>([]);
-  const [initialized, setInitialized] = useState(false);
-
-  const scrollToAnalytics = () => {
-    analyticsRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const initializeDatabase = async () => {
-    try {
-      if (!initialized) {
-        toast.info("Initializing shelters database with sample data...");
-        const success = await initializeShelters();
-        if (success) {
-          toast.success("Database initialized with sample shelters and resources");
-          setInitialized(true);
-          return true;
-        }
-      }
-      return false;
-    } catch (err) {
-      console.error("Error initializing database:", err);
-      return false;
-    }
-  };
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchResources = async () => {
     setIsLoading(true);
     try {
-      // First fetch shelters to get context
-      const shelterData = await getShelters();
+      const fetchedResources = await getResources();
       
-      // If no shelters exist, initialize the database
-      if (shelterData.length === 0) {
-        await initializeDatabase();
-        // Fetch shelters again after initialization
-        const initializedShelters = await getShelters();
-        setShelters(initializedShelters);
+      // Transform the data to include shelter information
+      const resourcesWithShelterId = fetchedResources.map(resource => ({
+        ...resource,
+        shelter: resource.shelter_id ? { id: resource.shelter_id } : null
+      }));
+      
+      // If no resources exist and we haven't initialized yet
+      if (resourcesWithShelterId.length === 0 && !isInitialized) {
+        setIsInitialized(true);
+        toast.info("Initializing resource database with sample data...");
+        await initializeResources();
+        // Fetch again after initialization
+        const initializedResources = await getResources();
+        const transformedInitialResources = initializedResources.map(resource => ({
+          ...resource,
+          shelter: resource.shelter_id ? { id: resource.shelter_id } : null
+        }));
+        setResources(transformedInitialResources);
       } else {
-        setShelters(shelterData);
+        setResources(resourcesWithShelterId);
       }
       
-      // Then fetch resources
-      let dbResources = await getResources();
+      // Get shelter information for each resource
+      const shelterIds = resourcesWithShelterId
+        .map(r => r.shelter_id)
+        .filter((id): id is number => id !== null && id !== undefined);
       
-      // Group resources by category and sum up totals across all shelters
-      const resourcesByCategory = dbResources.reduce((acc, resource) => {
-        const category = resource.category;
-        if (!acc[category]) {
-          acc[category] = {
-            total: 0,
-            shelterCount: new Set(),
-            alerts: 0,
-            unit: resource.unit
-          };
-        }
+      if (shelterIds.length > 0) {
+        const uniqueShelterIds = [...new Set(shelterIds)];
+        const shelters = await Promise.all(
+          uniqueShelterIds.map(id => getShelterById(id))
+        );
         
-        acc[category].total += resource.total_amount;
-        if (resource.shelter_id) {
-          acc[category].shelterCount.add(resource.shelter_id);
-        }
+        const shelterMap = new Map(
+          shelters.map(shelter => [shelter.id, shelter])
+        );
         
-        // Track alerts (when resource amount is below threshold)
-        if (resource.total_amount <= resource.alert_threshold) {
-          acc[category].alerts += 1;
-        }
+        const resourcesWithShelterInfo = resourcesWithShelterId.map(resource => ({
+          ...resource,
+          shelter: resource.shelter_id 
+            ? shelterMap.get(resource.shelter_id) || null
+            : null
+        }));
         
-        return acc;
-      }, {} as Record<string, { total: number, shelterCount: Set<number>, alerts: number, unit: string }>);
-      
-      // Map resource data to UI format
-      const updatedResources = resources.map(resource => {
-        // Map UI resource names to database categories
-        const categoryMap: Record<string, string> = {
-          'Food Supplies': 'Food',
-          'Water Supplies': 'Water',
-          'Medical Supplies': 'Medical',
-          'Emergency Power': 'Power',
-          'Shelter Kits': 'Beds'
-        };
-        
-        const dbCategory = categoryMap[resource.name] || 'Other';
-        const categoryData = resourcesByCategory[dbCategory];
-        
-        if (categoryData) {
-          return {
-            ...resource,
-            totalAmount: categoryData.total,
-            shelters: categoryData.shelterCount.size,
-            alerts: categoryData.alerts,
-            unit: categoryData.unit,
-            status: categoryData.alerts > 0 ? 'warning' : 'normal'
-          };
-        }
-        return resource;
-      });
-      
-      setResources(updatedResources);
+        setResources(resourcesWithShelterInfo);
+      }
     } catch (err) {
       console.error('Error fetching resources:', err);
-      setError('Failed to load resources');
+      setError('Failed to load resources. Using fallback data.');
+      setResources(sampleResourceData);
     } finally {
       setIsLoading(false);
     }
@@ -124,44 +158,78 @@ const Resources = () => {
 
   useEffect(() => {
     fetchResources();
-  }, []);
+  }, []);  // Update to include fetchResources in the dependency array
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy HH:mm');
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return 'Unknown';
+    }
+  };
 
   return (
     <Layout>
       <div className="container mx-auto py-10 px-4">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Resource Management</h1>
-            <p className="text-gray-600 mt-2">Track and distribute critical resources across {shelters.length} shelters</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Resource Inventory</h1>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-32">
+            <p className="text-gray-500">Loading resources...</p>
           </div>
-          <div>
-            <Button variant="outline" onClick={scrollToAnalytics}>
-              <BarChart2 className="h-4 w-4 mr-2" />
-              View Analytics
-            </Button>
+        ) : error ? (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong className="font-bold">Error!</strong>
+            <span className="block sm:inline"> {error}</span>
           </div>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {resources.map((resource) => (
+              <Card key={resource.id} className="bg-white shadow-md rounded-lg overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">
+                    {resource.name}
+                  </CardTitle>
+                  {resource.category && (
+                    <Badge variant="secondary">
+                      {resource.category}
+                    </Badge>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Package className="h-4 w-4 mr-2" />
+                      <span>Amount: {resource.total_amount} {resource.unit}</span>
+                    </div>
+                    {resource.shelter && (
+                      <>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Home className="h-4 w-4 mr-2" />
+                          <span>Shelter: {resource.shelter.name}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <CircleDollarSign className="h-4 w-4 mr-2" />
+                          <span>Address: {resource.shelter.address}</span>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex items-center text-sm text-gray-500">
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      <span>Alert Threshold: {resource.alert_threshold} {resource.unit}</span>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      Last Updated: {formatDate(resource.last_updated)}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
-          {resources.map((resource) => (
-            <ResourceCard 
-              key={resource.id} 
-              resource={resource} 
-              onResourceUpdated={fetchResources}
-            />
-          ))}
-        </div>
-
-        <ResourceAnalytics analyticsRef={analyticsRef} />
       </div>
     </Layout>
   );
 };
 
-export default Resources;
+export default ResourcesPage;
