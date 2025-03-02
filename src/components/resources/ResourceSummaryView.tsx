@@ -8,6 +8,7 @@ import { Resource } from '@/lib/supabase/types';
 import ResourceBarChart from './ResourceBarChart';
 import ShelterCoverageChart from './ShelterCoverageChart';
 import AllocationEfficiencyChart from './AllocationEfficiencyChart';
+import { Cell } from 'recharts';
 
 interface ResourceCategory {
   category: string;
@@ -25,6 +26,18 @@ interface ResourceSummaryViewProps {
 const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps) => {
   const [resourceDetailOpen, setResourceDetailOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ResourceCategory | null>(null);
+
+  // Function to get color for a category
+  function getColorForCategory(category: string) {
+    switch (category) {
+      case 'Food': return '#FF6B6B';
+      case 'Water': return '#4ECDC4';
+      case 'Medical': return '#1A535C';
+      case 'Beds': return '#FFE66D';
+      case 'Power': return '#F7B801';
+      default: return '#6B5CA5';
+    }
+  }
 
   // Group resources by category
   const resourcesByCategory = resources.reduce((acc, resource) => {
@@ -72,17 +85,6 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     value: category.shelterCount,
     color: getColorForCategory(category.category)
   }));
-
-  function getColorForCategory(category: string) {
-    switch (category) {
-      case 'Food': return '#FF6B6B';
-      case 'Water': return '#4ECDC4';
-      case 'Medical': return '#1A535C';
-      case 'Beds': return '#FFE66D';
-      case 'Power': return '#F7B801';
-      default: return '#6B5CA5';
-    }
-  }
 
   const openResourceDetail = (category: ResourceCategory) => {
     setSelectedCategory(category);
@@ -156,7 +158,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Shelter Coverage</CardTitle>
-            <CardDescription>Resource distribution across shelters</CardDescription>
+            <CardDescription>Number of shelters with each resource type</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ShelterCoverageChart data={shelterCoverageData} />
