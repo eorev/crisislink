@@ -85,6 +85,8 @@ const AddShelterDialog: React.FC<AddShelterDialogProps> = ({ onShelterAdded }) =
         current_occupancy: values.occupancy || 0,
         contact_phone: values.phone,
         status: values.status,
+        // Add the missing last_updated field
+        last_updated: new Date().toISOString(),
         // Add default resources based on capacity
         resources_available: ["Food", "Water", "Medical"]
       });
