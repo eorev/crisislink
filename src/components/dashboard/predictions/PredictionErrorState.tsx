@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Alert, AlertCircle, AlertDescription, AlertTitle, AlertTriangle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface PredictionErrorStateProps {
