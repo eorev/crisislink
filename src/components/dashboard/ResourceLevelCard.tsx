@@ -45,12 +45,16 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
           return acc;
         }, {} as Record<string, { total: number, maxAmount: number }>);
         
-        // Calculate levels as percentages
+        // Calculate levels as percentages and cap at 100%
         const updatedResources = Object.entries(resourcesByCategory).map(([category, data]) => {
-          const level = Math.round((data.total / data.maxAmount) * 100);
+          // Cap the level at 100% maximum
+          const level = Math.min(100, Math.round((data.total / data.maxAmount) * 100));
+          const actualLevel = Math.round((data.total / data.maxAmount) * 100);
+          
           return {
             name: category,
-            level: level,
+            level: level, // This is capped at 100%
+            actualLevel: actualLevel, // This is the true percentage (may be > 100%)
             alert: level < 50
           };
         });
@@ -97,6 +101,9 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
                   <span className="text-sm font-medium">{resource.name}</span>
                   <span className="text-sm font-medium">
                     {resource.level}%
+                    {resource.actualLevel > 100 && (
+                      <span className="text-xs text-green-600 ml-1">(Full)</span>
+                    )}
                     {resource.alert && (
                       <AlertTriangle className="h-4 w-4 text-red-500 ml-1 inline" />
                     )}

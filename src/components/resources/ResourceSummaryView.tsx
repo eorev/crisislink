@@ -136,19 +136,32 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     color: getColorForCategory(category)
   })).filter(item => item.name !== 'Other' || item.value > 0);
 
-  // Prepare data for ResourceDistributionChart (replacing ResourceAllocationEfficiencyChart)
-  const resourceDistributionData = shelters.map(shelter => {
-    const shelterResources = resources.filter(r => r.shelter_id === shelter.id);
-    const totalResourcesCount = shelterResources.reduce((sum, r) => sum + r.total_amount, 0);
-    const categoryCount = new Set(shelterResources.map(r => r.category)).size;
-    
-    return {
-      name: shelter.name.length > 15 ? shelter.name.substring(0, 15) + '...' : shelter.name,
-      resourceCount: totalResourcesCount,
-      categoryCount: categoryCount,
-      occupancyRate: Math.round((shelter.current_occupancy / (shelter.capacity || 1)) * 100)
-    };
-  }).sort((a, b) => b.resourceCount - a.resourceCount).slice(0, 5); // Top 5 shelters
+  // Helper function to calculate percentage width for the resource bar
+  const calculateBarWidth = (amount: number, maxAmount: number) => {
+    return `${Math.min(100, (amount / maxAmount) * 100)}%`;
+  };
+
+  // Prepare data for Resource Distribution by Shelter chart
+  const resourceDistributionData = shelters
+    .map(shelter => {
+      const shelterResources = resources.filter(r => r.shelter_id === shelter.id);
+      const totalResourcesCount = shelterResources.reduce((sum, r) => sum + r.total_amount, 0);
+      const categoryCount = new Set(shelterResources.map(r => r.category)).size;
+      
+      return {
+        name: shelter.name.length > 15 ? shelter.name.substring(0, 15) + '...' : shelter.name,
+        resourceCount: totalResourcesCount,
+        categoryCount: categoryCount,
+        occupancyRate: Math.round((shelter.current_occupancy / (shelter.capacity || 1)) * 100)
+      };
+    })
+    .sort((a, b) => b.resourceCount - a.resourceCount)
+    .slice(0, 5); // Top 5 shelters
+
+  // Get the max resource count for scaling the bars
+  const maxResourceCount = resourceDistributionData.length > 0 
+    ? resourceDistributionData[0].resourceCount 
+    : 1;
 
   const openResourceDetail = (category: ResourceCategory) => {
     setSelectedCategory(category);
@@ -187,7 +200,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
                 <Package className="h-5 w-5 text-gray-500" />
               </CardTitle>
               <CardDescription>
-                Distributed across {shelterResourceDistribution[category.category as keyof typeof shelterResourceDistribution]} shelters
+                Distributed across {shelterResourceDistribution[category.category as keyof typeof shelterResourceDistribution] || 0} shelters
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -234,20 +247,20 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
             <CardTitle>Resource Distribution by Shelter</CardTitle>
             <CardDescription>Top 5 shelters by resource count and diversity</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <div className="w-full h-full">
+          <CardContent>
+            <div className="w-full">
               {resourceDistributionData.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {resourceDistributionData.map((item, index) => (
                     <div key={index} className="space-y-2">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="font-medium">{item.name}</span>
-                        <span>{item.resourceCount.toLocaleString()} resources</span>
+                        <span className="text-sm">{item.resourceCount.toLocaleString()} resources</span>
                       </div>
-                      <div className="w-full bg-gray-200 h-2 rounded-full">
+                      <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                         <div 
                           className="bg-blue-500 h-2 rounded-full" 
-                          style={{ width: `${Math.min(100, (item.resourceCount / (resourceDistributionData[0]?.resourceCount || 1)) * 100)}%` }}
+                          style={{ width: calculateBarWidth(item.resourceCount, maxResourceCount) }}
                         />
                       </div>
                       <div className="flex justify-between text-xs text-gray-500">
@@ -258,7 +271,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full">
+                <div className="flex items-center justify-center h-[200px]">
                   <p className="text-gray-500">No shelter data available</p>
                 </div>
               )}
