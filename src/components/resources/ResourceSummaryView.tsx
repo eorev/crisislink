@@ -89,7 +89,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     return categoryToShelterCount;
   };
 
-  // Group resources by category
+  // Group resources by category - update this to properly handle Other category
   const resourcesByCategory = resources.reduce((acc, resource) => {
     const category = resource.category;
     if (!acc[category]) {
@@ -103,10 +103,6 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     }
     
     acc[category].totalAmount += resource.total_amount;
-    // Only count shelter-assigned resources
-    if (resource.shelter_id) {
-      acc[category].shelterCount++;
-    }
     acc[category].resources.push(resource);
     
     // Use the most common unit for this category
@@ -124,6 +120,12 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
   const resourceCategories = Object.values(resourcesByCategory);
   const shelterResourceDistribution = getResourceDistribution();
 
+  // Update shelter counts for each category based on the distribution data
+  resourceCategories.forEach(category => {
+    const categoryName = category.category as keyof typeof shelterResourceDistribution;
+    category.shelterCount = shelterResourceDistribution[categoryName] || 0;
+  });
+
   // Prepare data for ResourceBarChart
   const chartData = resourceCategories.map(category => ({
     name: category.category,
@@ -135,7 +137,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     name: category,
     value: count,
     color: getColorForCategory(category)
-  })).filter(item => item.name !== 'Other' || item.value > 0);
+  }));
 
   // Helper function to calculate percentage width for the resource bar
   const calculateBarWidth = (amount: number, maxAmount: number) => {
@@ -201,7 +203,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
                 <Package className="h-5 w-5 text-gray-500" />
               </CardTitle>
               <CardDescription>
-                Distributed across {shelterResourceDistribution[category.category as keyof typeof shelterResourceDistribution] || 0} shelters
+                Distributed across {category.shelterCount} shelters
               </CardDescription>
             </CardHeader>
             <CardContent>

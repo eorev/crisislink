@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,6 +103,7 @@ const ResourceDetailDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{resource ? 'Edit Resource' : 'Add New Resource'}</DialogTitle>
+          <DialogDescription>Enter the details for this resource.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -171,7 +173,7 @@ const ResourceDetailDialog = ({
                   <SelectValue placeholder="Select a shelter or leave empty for central storage" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Central Storage</SelectItem>
+                  <SelectItem value="central">Central Storage</SelectItem>
                   {shelters.map((shelter) => (
                     <SelectItem key={shelter.id} value={shelter.id.toString()}>
                       {shelter.name}

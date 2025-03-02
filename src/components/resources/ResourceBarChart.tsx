@@ -21,10 +21,10 @@ interface ResourceBarChartProps {
   data: BarChartData[];
 }
 
-const ResourceBarChart: React.FC<ResourceBarChartProps> = ({ data }) => {
-  // Custom colors for the bars
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+// Custom colors for the bars
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#6B5CA5'];
 
+const ResourceBarChart: React.FC<ResourceBarChartProps> = ({ data }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart
@@ -37,8 +37,19 @@ const ResourceBarChart: React.FC<ResourceBarChartProps> = ({ data }) => {
         }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
+        <XAxis 
+          dataKey="name" 
+          // Remove defaultProps usage
+          tick={{ fontSize: 12 }}
+          tickLine={true}
+          axisLine={true}
+        />
+        <YAxis 
+          // Remove defaultProps usage
+          tick={{ fontSize: 12 }}
+          tickLine={true}
+          axisLine={true}
+        />
         <Tooltip 
           formatter={(value) => [`${value} units`, 'Amount']}
           labelFormatter={(label) => `Resource: ${label}`}
