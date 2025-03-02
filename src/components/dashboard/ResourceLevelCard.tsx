@@ -5,6 +5,8 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { getResources } from '@/lib/supabase/resources';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import ResourceRequestDialog from './ResourceRequestDialog';
 
 interface ResourceLevel {
   name: string;
@@ -98,38 +100,51 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
             ))}
           </div>
         ) : (
-          <div className="space-y-6">
-            {resources.map((resource, i) => (
-              <div key={i} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{resource.name}</span>
-                  <span className="text-sm font-medium">
-                    {resource.level}%
-                    {resource.actualLevel && resource.actualLevel > 100 && (
-                      <span className="text-xs text-green-600 ml-1">(Full)</span>
-                    )}
-                    {resource.alert && (
-                      <AlertTriangle className="h-4 w-4 text-red-500 ml-1 inline" />
-                    )}
-                  </span>
+          <>
+            <div className="space-y-6">
+              {resources.map((resource, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{resource.name}</span>
+                    <span className="text-sm font-medium">
+                      {resource.level}%
+                      {resource.actualLevel && resource.actualLevel > 100 && (
+                        <span className="text-xs text-green-600 ml-1">(Full)</span>
+                      )}
+                      {resource.alert && (
+                        <AlertTriangle className="h-4 w-4 text-red-500 ml-1 inline" />
+                      )}
+                    </span>
+                  </div>
+                  <div className="bg-gray-50 rounded-full h-4 shadow-neumorphic-inset overflow-hidden">
+                    <Progress 
+                      value={resource.level} 
+                      className="h-4 border-0 bg-gray-200 shadow-inner" 
+                      indicatorClassName={`${
+                        resource.level > 70 ? 'bg-emerald-500' : 
+                        resource.level > 40 ? 'bg-yellow-500' : 
+                        'bg-red-500'
+                      } shadow-neumorphic-inset rounded-full`}
+                    />
+                  </div>
+                  {resource.alert && (
+                    <p className="text-xs text-red-500">Low levels detected - resupply needed</p>
+                  )}
                 </div>
-                <div className="bg-gray-50 rounded-full h-4 shadow-neumorphic-inset overflow-hidden">
-                  <Progress 
-                    value={resource.level} 
-                    className="h-4 border-0 bg-gray-200 shadow-inner" 
-                    indicatorClassName={`${
-                      resource.level > 70 ? 'bg-emerald-500' : 
-                      resource.level > 40 ? 'bg-yellow-500' : 
-                      'bg-red-500'
-                    } shadow-neumorphic-inset rounded-full`}
-                  />
-                </div>
-                {resource.alert && (
-                  <p className="text-xs text-red-500">Low levels detected - resupply needed</p>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="default" className="w-full bg-blue-600 hover:bg-blue-700">
+                    Request Resources
+                  </Button>
+                </DialogTrigger>
+                <ResourceRequestDialog />
+              </Dialog>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
