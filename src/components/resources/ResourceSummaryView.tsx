@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, ArrowUpDown } from 'lucide-react';
@@ -21,14 +20,14 @@ interface ResourceCategory {
 interface ResourceSummaryViewProps {
   resources: Resource[];
   isLoading: boolean;
+  onResourceUpdated?: () => void;
 }
 
-const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps) => {
+const ResourceSummaryView = ({ resources, isLoading, onResourceUpdated }: ResourceSummaryViewProps) => {
   const [resourceDetailOpen, setResourceDetailOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ResourceCategory | null>(null);
   const [shelters, setShelters] = useState<Shelter[]>([]);
 
-  // Fetch shelters for displaying proper shelter counts
   useEffect(() => {
     const fetchShelters = async () => {
       try {
@@ -42,7 +41,6 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     fetchShelters();
   }, []);
 
-  // Function to get color for a category
   function getColorForCategory(category: string) {
     switch (category) {
       case 'Food': return '#FF6B6B';
@@ -50,12 +48,11 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
       case 'Medical': return '#1A535C';
       case 'Beds': return '#FFE66D';
       case 'Power': return '#F7B801';
-      case 'Other': return '#6B5CA5'; // Keep color for Other in case it's needed elsewhere
+      case 'Other': return '#6B5CA5';
       default: return '#6B5CA5';
     }
   }
 
-  // Count resources by shelter
   const getResourceDistribution = () => {
     const shelterResourceMap = new Map<number, Set<string>>();
     
@@ -68,7 +65,6 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
       }
     });
     
-    // Calculate how many shelters have each resource category
     const categoryToShelterCount = {
       'Food': 0,
       'Water': 0,
@@ -89,7 +85,6 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     return categoryToShelterCount;
   };
 
-  // Group resources by category - update this to properly handle Other category
   const resourcesByCategory = resources.reduce((acc, resource) => {
     const category = resource.category;
     if (!acc[category]) {
@@ -105,7 +100,6 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     acc[category].totalAmount += resource.total_amount;
     acc[category].resources.push(resource);
     
-    // Use the most common unit for this category
     const unitCounts = acc[category].resources.reduce((units, res) => {
       units[res.unit] = (units[res.unit] || 0) + 1;
       return units;
@@ -117,26 +111,22 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     return acc;
   }, {} as Record<string, ResourceCategory>);
 
-  // Filter out the "Other" category
   const filteredResourceCategories = Object.values(resourcesByCategory).filter(
     category => category.category !== 'Other'
   );
   
   const shelterResourceDistribution = getResourceDistribution();
 
-  // Update shelter counts for each category based on the distribution data
   filteredResourceCategories.forEach(category => {
     const categoryName = category.category as keyof typeof shelterResourceDistribution;
     category.shelterCount = shelterResourceDistribution[categoryName] || 0;
   });
 
-  // Prepare data for ResourceBarChart - filter out "Other" here too
   const chartData = filteredResourceCategories.map(category => ({
     name: category.category,
     value: category.totalAmount
   }));
 
-  // Prepare data for ShelterCoverageChart - filter out "Other" here too
   const shelterCoverageData = Object.entries(shelterResourceDistribution)
     .filter(([category]) => category !== 'Other')
     .map(([category, count]) => ({
@@ -145,12 +135,10 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
       color: getColorForCategory(category)
     }));
 
-  // Helper function to calculate percentage width for the resource bar
   const calculateBarWidth = (amount: number, maxAmount: number) => {
     return `${Math.min(100, (amount / maxAmount) * 100)}%`;
   };
 
-  // Prepare data for Resource Distribution by Shelter chart
   const resourceDistributionData = shelters
     .map(shelter => {
       const shelterResources = resources.filter(r => r.shelter_id === shelter.id);
@@ -165,9 +153,8 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
       };
     })
     .sort((a, b) => b.resourceCount - a.resourceCount)
-    .slice(0, 5); // Top 5 shelters
+    .slice(0, 5);
 
-  // Get the max resource count for scaling the bars
   const maxResourceCount = resourceDistributionData.length > 0 
     ? resourceDistributionData[0].resourceCount 
     : 1;
@@ -289,7 +276,6 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
         </Card>
       </div>
 
-      {/* Resource Details Dialog */}
       <Dialog open={resourceDetailOpen} onOpenChange={setResourceDetailOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>

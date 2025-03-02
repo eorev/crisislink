@@ -14,6 +14,7 @@ const ResourcesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchResources = async () => {
     setIsLoading(true);
@@ -29,9 +30,23 @@ const ResourcesPage = () => {
     }
   };
 
+  // Refresh resources when the page loads or refreshTrigger changes
   useEffect(() => {
     fetchResources();
+  }, [refreshTrigger]);
+
+  // Subscribe to resource updates - poll every 30 seconds
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchResources();
+    }, 30000);
+    
+    return () => clearInterval(intervalId);
   }, []);
+
+  const handleResourceUpdate = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return (
     <Layout>
@@ -50,7 +65,11 @@ const ResourcesPage = () => {
             <span className="block sm:inline"> {error}</span>
           </div>
         ) : (
-          <ResourceSummaryView resources={resources} isLoading={isLoading} />
+          <ResourceSummaryView 
+            resources={resources} 
+            isLoading={isLoading} 
+            onResourceUpdated={handleResourceUpdate}
+          />
         )}
 
         <ResourceDetailDialog 

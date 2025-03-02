@@ -14,11 +14,16 @@ type ResourceCategory = 'Food' | 'Water' | 'Medical' | 'Beds' | 'Power';
 type ResourcesSelectorProps = {
     shelterId: number;
     shelterName: string;
+    onResourcesUpdated?: () => void; // Add callback for parent components
 };
 
 const availableResources: ResourceCategory[] = ['Food', 'Water', 'Medical', 'Beds', 'Power'];
 
-const ResourcesSelector: React.FC<ResourcesSelectorProps> = ({ shelterId, shelterName }) => {
+const ResourcesSelector: React.FC<ResourcesSelectorProps> = ({ 
+    shelterId, 
+    shelterName,
+    onResourcesUpdated 
+}) => {
     const [selectedResources, setSelectedResources] = useState<ResourceCategory[]>([]);
     const [quantities, setQuantities] = useState<Record<ResourceCategory, number>>({
         Food: 0,
@@ -33,22 +38,22 @@ const ResourcesSelector: React.FC<ResourcesSelectorProps> = ({ shelterId, shelte
 
     // Fetch central resources (where shelter_id is null)
     useEffect(() => {
-        const fetchCentralResources = async () => {
-            try {
-                setIsLoading(true);
-                const resources = await getResources();
-                const central = resources.filter(r => r.shelter_id === null);
-                setCentralResources(central);
-            } catch (error) {
-                console.error("Error fetching central resources:", error);
-                toast.error("Failed to load central resources");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchCentralResources();
     }, []);
+
+    const fetchCentralResources = async () => {
+        try {
+            setIsLoading(true);
+            const resources = await getResources();
+            const central = resources.filter(r => r.shelter_id === null);
+            setCentralResources(central);
+        } catch (error) {
+            console.error("Error fetching central resources:", error);
+            toast.error("Failed to load central resources");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleResourceToggle = (resource: ResourceCategory) => {
         if (selectedResources.includes(resource)) {
@@ -132,8 +137,12 @@ const ResourcesSelector: React.FC<ResourcesSelectorProps> = ({ shelterId, shelte
             });
             
             // Refresh the central resources
-            const updatedResources = await getResources();
-            setCentralResources(updatedResources.filter(r => r.shelter_id === null));
+            await fetchCentralResources();
+            
+            // Notify parent component about the update
+            if (onResourcesUpdated) {
+                onResourcesUpdated();
+            }
         } catch (error) {
             console.error("Error adding resources:", error);
             toast.error("Failed to add resources");
