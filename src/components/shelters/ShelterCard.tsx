@@ -2,9 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Phone, Clock, Trash2 } from 'lucide-react';
+import { MapPin, Users, Phone, Clock, Trash2, Package } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { ShelterWithResources } from '@/components/shelters/ShelterTypes';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import ResourcesSelector from '@/components/dashboard/ResourcesSelector';
 
 interface ShelterCardProps {
   shelter: ShelterWithResources;
@@ -93,6 +95,19 @@ export const ShelterCard = ({ shelter, onDeleteClick }: ShelterCardProps) => {
               <span>Updated {formatLastUpdated(shelter.last_updated)}</span>
             </div>
           </div>
+          
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center gap-2 mt-2"
+              >
+                <Package className="h-4 w-4" />
+                Add Resources
+              </Button>
+            </DialogTrigger>
+            <ResourcesSelector shelterId={shelter.id} shelterName={shelter.name} />
+          </Dialog>
         </div>
       </CardContent>
     </Card>

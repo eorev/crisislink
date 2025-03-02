@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import { getCurrentUser } from './auth';
 import type { Resource, Shelter } from './types';

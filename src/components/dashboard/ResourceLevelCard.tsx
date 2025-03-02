@@ -3,14 +3,13 @@ import { AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import RequestSuppliesDialog from './RequestSuppliesDialog';
 import { useEffect, useState } from 'react';
 import { getResources } from '@/lib/supabase/resources';
 
 interface ResourceLevel {
   name: string;
   level: number;
-  actualLevel?: number; // Add the actualLevel property
+  actualLevel?: number;
   alert: boolean;
 }
 
@@ -33,6 +32,9 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
         // Group by category
         const resourcesByCategory = dbResources.reduce((acc, resource) => {
           const category = resource.category;
+          // Skip the "Other" category
+          if (category === 'Other') return acc;
+          
           if (!acc[category]) {
             acc[category] = {
               total: 0,
@@ -40,7 +42,7 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
                          category === 'Water' ? 40000 : 
                          category === 'Medical' ? 6000 : 
                          category === 'Power' ? 100 : 
-                         category === 'Other' ? 3000 : 3000 // Added explicit case for 'Other'
+                         category === 'Beds' ? 3000 : 3000
             };
           }
           acc[category].total += resource.total_amount;
@@ -129,13 +131,6 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
             ))}
           </div>
         )}
-        <RequestSuppliesDialog 
-          trigger={
-            <Button variant="outline" className="w-full mt-6 bg-gray-50 shadow-neumorphic-sm hover:shadow-neumorphic-inset transition-shadow border-0">
-              Request Supplies
-            </Button>
-          }
-        />
       </CardContent>
     </Card>
   );
