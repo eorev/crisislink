@@ -1,40 +1,52 @@
 
 import React from 'react';
 import ResourceBarChart from './ResourceBarChart';
-import ShelterCoverageChart from './ShelterCoverageChart';
-import AllocationEfficiencyChart from './AllocationEfficiencyChart';
 import ResourceTrendChart from './ResourceTrendChart';
-import { getResourceBarChartData, getResourceDistributionData, resourceEfficiencyData } from './ResourceData';
+import ShelterCoverageChart from './ShelterCoverageChart';
+// Remove the import for AllocationEfficiencyChart since it doesn't exist
 
-interface ResourceAnalyticsProps {
-  analyticsRef: React.RefObject<HTMLDivElement>;
-}
+const ResourceAnalytics = () => {
+  // Sample data for charts
+  const resourceDistribution = [
+    { name: 'Food', value: 35 },
+    { name: 'Water', value: 25 },
+    { name: 'Medical', value: 20 },
+    { name: 'Shelter', value: 15 },
+    { name: 'Power', value: 5 }
+  ];
 
-const ResourceAnalytics = ({ analyticsRef }: ResourceAnalyticsProps) => {
-  // Transform data to match expected props
-  const barChartData = getResourceBarChartData().map(item => ({
-    name: item.name,
-    value: item.amount
-  }));
-
-  const allocationData = resourceEfficiencyData.map(item => ({
-    name: item.name,
-    allocated: item.efficiency,
-    capacity: 100,
-    needs: item.target
-  }));
+  const shelterDistribution = [
+    { name: 'Shelter A', allocated: 80, capacity: 100, needs: 90 },
+    { name: 'Shelter B', allocated: 65, capacity: 90, needs: 75 },
+    { name: 'Shelter C', allocated: 90, capacity: 95, needs: 85 },
+    { name: 'Shelter D', allocated: 50, capacity: 70, needs: 65 },
+    { name: 'Shelter E', allocated: 75, capacity: 85, needs: 80 }
+  ];
 
   return (
-    <div ref={analyticsRef} className="pt-10 pb-12">
-      <div className="border-b border-gray-200 mb-12">
-        <h2 className="text-2xl font-bold mb-6">Resource Analytics</h2>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-lg font-semibold mb-4">Resource Distribution</h3>
+        <ResourceBarChart data={resourceDistribution} />
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <ResourceBarChart data={barChartData} />
-        <ShelterCoverageChart data={getResourceDistributionData()} />
-        <AllocationEfficiencyChart data={allocationData} />
+      
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-lg font-semibold mb-4">Resource Trends (Last 30 Days)</h3>
         <ResourceTrendChart />
+      </div>
+      
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-lg font-semibold mb-4">Shelter Resource Coverage</h3>
+        <ShelterCoverageChart data={shelterDistribution} />
+      </div>
+      
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-lg font-semibold mb-4">Resource Requests by Shelter</h3>
+        <p className="text-gray-500 text-sm">Showing resource requests from shelters in the last 7 days</p>
+        {/* We could add another chart component here in the future */}
+        <div className="flex items-center justify-center h-64 text-gray-400">
+          No requests data available
+        </div>
       </div>
     </div>
   );

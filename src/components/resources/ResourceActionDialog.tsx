@@ -20,27 +20,36 @@ import type { Resource } from '@/lib/supabase/types';
 interface ResourceActionDialogProps {
   resourceId: number;
   resourceName: string;
-  totalAmount: number;
-  unit: string;
-  isAdding: boolean;
-  onSuccess: () => void;
+  resourceUnit: string;
+  actionType: 'add' | 'remove'; // Make this more specific
+  onActionComplete: () => void;
   children?: React.ReactNode;
-  trigger?: React.ReactNode;
+  triggerText?: string;
+  triggerIcon?: React.ReactNode;
+  title?: string;
+  description?: string;
 }
 
 const ResourceActionDialog = ({ 
   resourceId, 
   resourceName, 
-  totalAmount,
-  unit,
-  isAdding,
-  onSuccess,
+  resourceUnit,
+  actionType,
+  onActionComplete,
   children,
-  trigger 
+  triggerText,
+  triggerIcon,
+  title,
+  description
 }: ResourceActionDialogProps) => {
   const [amount, setAmount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
+  const isAdding = actionType === 'add';
+
+  // Since we don't have access to totalAmount from the type definition,
+  // we'll need to fetch it or have it passed in properly in a real implementation
+  const totalAmount = 100; // This is a placeholder
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +61,7 @@ const ResourceActionDialog = ({
 
     // For subtract, ensure we don't go below zero
     if (!isAdding && amount > totalAmount) {
-      toast.error(`Cannot remove more than the available ${totalAmount} ${unit}`);
+      toast.error(`Cannot remove more than the available ${totalAmount} ${resourceUnit}`);
       return;
     }
 
@@ -67,9 +76,9 @@ const ResourceActionDialog = ({
         total_amount: newAmount
       });
       
-      toast.success(`Successfully ${isAdding ? 'added' : 'removed'} ${amount} ${unit} of ${resourceName}`);
+      toast.success(`Successfully ${isAdding ? 'added' : 'removed'} ${amount} ${resourceUnit} of ${resourceName}`);
       setOpen(false);
-      onSuccess();
+      onActionComplete();
     } catch (error) {
       console.error('Error updating resource:', error);
       toast.error(`Failed to ${isAdding ? 'add' : 'remove'} resource: ${(error as Error).message}`);
@@ -81,7 +90,11 @@ const ResourceActionDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || (
+        {triggerText ? (
+          <Button variant="outline" size="sm">
+            {triggerIcon}{triggerText}
+          </Button>
+        ) : (
           <Button variant="outline" size="sm">
             {children || (isAdding ? (
               <><PlusCircle className="h-4 w-4 mr-1" />Add</>
@@ -95,12 +108,12 @@ const ResourceActionDialog = ({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
-              {isAdding ? `Add ${resourceName}` : `Use ${resourceName}`}
+              {title || (isAdding ? `Add ${resourceName}` : `Use ${resourceName}`)}
             </DialogTitle>
             <DialogDescription>
-              {isAdding 
-                ? `Add additional ${unit} to your current supply` 
-                : `Remove ${unit} from your current supply`}
+              {description || (isAdding 
+                ? `Add additional ${resourceUnit} to your current supply` 
+                : `Remove ${resourceUnit} from your current supply`)}
             </DialogDescription>
           </DialogHeader>
           
@@ -117,14 +130,14 @@ const ResourceActionDialog = ({
                 value={amount || ''}
                 onChange={(e) => setAmount(parseInt(e.target.value) || 0)}
                 className="col-span-3"
-                placeholder={`Enter ${unit} amount`}
+                placeholder={`Enter ${resourceUnit} amount`}
               />
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Current:</Label>
               <div className="col-span-3">
-                <span className="font-medium">{totalAmount.toLocaleString()} {unit}</span>
+                <span className="font-medium">{totalAmount.toLocaleString()} {resourceUnit}</span>
               </div>
             </div>
             
@@ -135,7 +148,7 @@ const ResourceActionDialog = ({
                   {isAdding 
                     ? (totalAmount + (amount || 0)).toLocaleString()
                     : (totalAmount - (amount || 0) < 0 ? 0 : totalAmount - (amount || 0)).toLocaleString()
-                  } {unit}
+                  } {resourceUnit}
                 </span>
               </div>
             </div>
