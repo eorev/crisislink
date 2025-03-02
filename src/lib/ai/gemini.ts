@@ -154,14 +154,23 @@ export async function analyzePredictions(
         })),
         summary: z.string(),
       })
-    })
+    });
 
     const { object } = result;
-    const { predictions, summary } = object;
-
-    const parsedResponse = {
+    
+    // Ensure all properties exist and are the correct type
+    const predictions = object.predictions.map(p => ({
+      disaster_type: p.disaster_type,
+      location: p.location,
+      probability: p.probability,
+      severity: p.severity,
+      timeframe: p.timeframe,
+      details: p.details
+    }));
+    
+    const parsedResponse: PredictionResponse = {
       predictions,
-      summary,
+      summary: object.summary
     };
     
     // Cache the result
@@ -172,7 +181,7 @@ export async function analyzePredictions(
     };
     
     console.log('Successfully received predictions from Gemini', parsedResponse);
-    return parsedResponse as PredictionResponse;
+    return parsedResponse;
   } catch (error) {
     console.error('Error analyzing predictions with Gemini:', error);
     throw error; // Re-throw to handle error at call site
