@@ -1,6 +1,6 @@
 import { supabase } from './client';
 import { getCurrentUser } from './auth';
-import type { Resource } from './types';
+import type { Resource, Shelter } from './types';
 import { toast } from 'sonner';
 
 export const getResources = async () => {
@@ -211,4 +211,18 @@ export const allocateResource = async (
   }
   
   return true;
+};
+
+export const getShelterById = async (id: number): Promise<Shelter> => {
+  const { data, error } = await supabase
+    .from('shelters')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    throw error;
+  }
+  
+  return data as Shelter;
 };

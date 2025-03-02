@@ -1,4 +1,3 @@
-
 import { createShelter } from './shelters';
 import { createResource } from './resources';
 
@@ -129,6 +128,66 @@ export const initializeShelters = async () => {
     return true;
   } catch (error) {
     console.error("Error initializing shelters:", error);
+    return false;
+  }
+};
+
+/**
+ * Initialize the database with starter resources if they don't exist
+ */
+export const initializeResources = async () => {
+  try {
+    // First ensure we have shelters
+    await initializeShelters();
+    
+    // Then add central/unallocated resources if needed
+    const centralResources = [
+      {
+        name: 'Emergency Food Supplies',
+        category: 'Food' as const,
+        total_amount: 5000,
+        unit: 'meals',
+        alert_threshold: 1000,
+        last_updated: new Date().toISOString()
+      },
+      {
+        name: 'Bottled Water',
+        category: 'Water' as const,
+        total_amount: 10000,
+        unit: 'bottles',
+        alert_threshold: 2000,
+        last_updated: new Date().toISOString()
+      },
+      {
+        name: 'First Aid Kits',
+        category: 'Medical' as const,
+        total_amount: 800,
+        unit: 'kits',
+        alert_threshold: 150,
+        last_updated: new Date().toISOString()
+      },
+      {
+        name: 'Portable Generators',
+        category: 'Power' as const,
+        total_amount: 25,
+        unit: 'units',
+        alert_threshold: 5,
+        last_updated: new Date().toISOString()
+      }
+    ];
+    
+    for (const resource of centralResources) {
+      try {
+        await createResource(resource);
+        console.log(`Created central resource: ${resource.name}`);
+      } catch (error) {
+        console.error(`Failed to create resource ${resource.name}:`, error);
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error initializing resources:", error);
     return false;
   }
 };

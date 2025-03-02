@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -101,51 +102,74 @@ const ResourcesPage = () => {
     try {
       const fetchedResources = await getResources();
       
-      // Transform the data to include shelter information
-      const resourcesWithShelterId = fetchedResources.map(resource => ({
-        ...resource,
-        shelter: resource.shelter_id ? { id: resource.shelter_id } : null
-      }));
-      
       // If no resources exist and we haven't initialized yet
-      if (resourcesWithShelterId.length === 0 && !isInitialized) {
+      if (fetchedResources.length === 0 && !isInitialized) {
         setIsInitialized(true);
         toast.info("Initializing resource database with sample data...");
         await initializeResources();
         // Fetch again after initialization
         const initializedResources = await getResources();
-        const transformedInitialResources = initializedResources.map(resource => ({
+        
+        // Transform to match ResourceWithShelter type
+        const initialResourcesWithShelter: ResourceWithShelter[] = initializedResources.map(resource => ({
           ...resource,
-          shelter: resource.shelter_id ? { id: resource.shelter_id } : null
+          shelter: resource.shelter_id ? { 
+            id: resource.shelter_id,
+            name: "Loading...", 
+            address: "Loading..." 
+          } : null
         }));
-        setResources(transformedInitialResources);
+        
+        setResources(initialResourcesWithShelter);
       } else {
-        setResources(resourcesWithShelterId);
+        // Transform to match ResourceWithShelter type
+        const resourcesWithShelter: ResourceWithShelter[] = fetchedResources.map(resource => ({
+          ...resource,
+          shelter: resource.shelter_id ? { 
+            id: resource.shelter_id,
+            name: "Loading...", 
+            address: "Loading..." 
+          } : null
+        }));
+        
+        setResources(resourcesWithShelter);
       }
       
       // Get shelter information for each resource
-      const shelterIds = resourcesWithShelterId
-        .map(r => r.shelter_id)
-        .filter((id): id is number => id !== null && id !== undefined);
+      const resourcesWithShelterId = resources
+        .filter(r => r.shelter_id !== undefined && r.shelter_id !== null);
       
-      if (shelterIds.length > 0) {
-        const uniqueShelterIds = [...new Set(shelterIds)];
-        const shelters = await Promise.all(
-          uniqueShelterIds.map(id => getShelterById(id))
-        );
+      if (resourcesWithShelterId.length > 0) {
+        const uniqueShelterIds = [...new Set(resourcesWithShelterId.map(r => r.shelter_id))];
+        
+        // Fetch shelter details for each unique shelter ID
+        const shelterDetailsPromises = uniqueShelterIds
+          .filter((id): id is number => id !== undefined)
+          .map(id => getShelterById(id));
+        
+        const shelters = await Promise.all(shelterDetailsPromises);
         
         const shelterMap = new Map(
           shelters.map(shelter => [shelter.id, shelter])
         );
         
-        const resourcesWithShelterInfo = resourcesWithShelterId.map(resource => ({
-          ...resource,
-          shelter: resource.shelter_id 
-            ? shelterMap.get(resource.shelter_id) || null
-            : null
-        }));
+        // Update resources with shelter information
+        const updatedResources = resources.map(resource => {
+          if (resource.shelter_id && shelterMap.has(resource.shelter_id)) {
+            const shelterInfo = shelterMap.get(resource.shelter_id);
+            return {
+              ...resource,
+              shelter: {
+                id: shelterInfo.id,
+                name: shelterInfo.name,
+                address: shelterInfo.address
+              }
+            };
+          }
+          return resource;
+        });
         
-        setResources(resourcesWithShelterInfo);
+        setResources(updatedResources);
       }
     } catch (err) {
       console.error('Error fetching resources:', err);
@@ -158,7 +182,7 @@ const ResourcesPage = () => {
 
   useEffect(() => {
     fetchResources();
-  }, []);  // Update to include fetchResources in the dependency array
+  }, []);  // fetchResources is defined inside the component so it should not be in the dependency array
 
   const formatDate = (dateString: string) => {
     try {
