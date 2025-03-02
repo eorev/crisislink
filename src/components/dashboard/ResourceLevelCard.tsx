@@ -1,5 +1,5 @@
 
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,12 @@ import { useEffect, useState } from 'react';
 import { getResources } from '@/lib/supabase/resources';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import ResourceRequestDialog from './ResourceRequestDialog';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface ResourceLevel {
   name: string;
@@ -78,10 +84,55 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
     fetchResourceLevels();
   }, []);
   
+  // Function to get the threshold description for tooltips
+  const getThresholdDescription = (resourceName: string) => {
+    const thresholds: Record<string, { max: number, unit: string }> = {
+      'Food': { max: 20000, unit: 'meals' },
+      'Water': { max: 40000, unit: 'gallons' },
+      'Medical': { max: 6000, unit: 'supplies' },
+      'Power': { max: 100, unit: 'generators' },
+      'Beds': { max: 3000, unit: 'beds' },
+      'Volunteers': { max: 3000, unit: 'volunteers' }
+    };
+    
+    const info = thresholds[resourceName] || { max: 3000, unit: 'units' };
+    return `${resourceName}: ${info.max} ${info.unit} at 100%`;
+  };
+  
   return (
     <Card className="lg:col-span-1 animate-fade-in animation-delay-200 rounded-xl bg-gray-50 shadow-neumorphic border-0">
       <CardHeader>
-        <CardTitle>Resource Levels</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle>Resource Levels</CardTitle>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-5 w-5 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs bg-white p-3 shadow-lg rounded-lg border border-gray-200">
+                <div className="space-y-2">
+                  <p className="font-semibold">Resource Level Thresholds</p>
+                  <p className="text-sm text-gray-600">
+                    Percentages show current inventory relative to maximum capacity:
+                  </p>
+                  <ul className="text-xs space-y-1 text-gray-600">
+                    {resources.map((resource) => (
+                      <li key={resource.name}>{getThresholdDescription(resource.name)}</li>
+                    ))}
+                  </ul>
+                  <div className="pt-1 text-xs">
+                    <span className="inline-block w-3 h-3 bg-emerald-500 rounded-full mr-1"></span> 
+                    <span className="mr-2">Above 70%</span>
+                    <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1"></span> 
+                    <span className="mr-2">40-70%</span>
+                    <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span> 
+                    <span>Below 40%</span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <CardDescription>Current availability across all shelters</CardDescription>
       </CardHeader>
       <CardContent>
@@ -105,7 +156,16 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
               {resources.map((resource, i) => (
                 <div key={i} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{resource.name}</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="text-sm font-medium cursor-help">{resource.name}</span>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="bg-white p-2 shadow-md rounded border border-gray-200">
+                          <p className="text-xs">{getThresholdDescription(resource.name)}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <span className="text-sm font-medium">
                       {resource.level}%
                       {resource.actualLevel && resource.actualLevel > 100 && (
