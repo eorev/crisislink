@@ -10,6 +10,7 @@ import { getResources } from '@/lib/supabase/resources';
 interface ResourceLevel {
   name: string;
   level: number;
+  actualLevel?: number; // Add the actualLevel property
   alert: boolean;
 }
 
@@ -101,7 +102,7 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
                   <span className="text-sm font-medium">{resource.name}</span>
                   <span className="text-sm font-medium">
                     {resource.level}%
-                    {resource.actualLevel > 100 && (
+                    {resource.actualLevel && resource.actualLevel > 100 && (
                       <span className="text-xs text-green-600 ml-1">(Full)</span>
                     )}
                     {resource.alert && (
