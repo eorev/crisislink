@@ -50,6 +50,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
       case 'Medical': return '#1A535C';
       case 'Beds': return '#FFE66D';
       case 'Power': return '#F7B801';
+      case 'Other': return '#6B5CA5'; // Ensure Other has a specific color
       default: return '#6B5CA5';
     }
   }

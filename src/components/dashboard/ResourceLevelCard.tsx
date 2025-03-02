@@ -39,7 +39,8 @@ const ResourceLevelCard = ({ resources: initialResources }: ResourceLevelCardPro
               maxAmount: category === 'Food' ? 20000 : 
                          category === 'Water' ? 40000 : 
                          category === 'Medical' ? 6000 : 
-                         category === 'Power' ? 100 : 3000
+                         category === 'Power' ? 100 : 
+                         category === 'Other' ? 3000 : 3000 // Added explicit case for 'Other'
             };
           }
           acc[category].total += resource.total_amount;

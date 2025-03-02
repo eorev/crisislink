@@ -41,4 +41,4 @@ const ResourcesSelector: React.FC<ResourcesSelectorProps> = ({ selectedResources
     );
 };
 
-export default ResourcesSelector; 
+export default ResourcesSelector;

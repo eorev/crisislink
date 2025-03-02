@@ -14,8 +14,8 @@ export const fallbackShelterData: ShelterWithResources[] = [
     current_occupancy: 87,
     contact_phone: '(555) 123-4567',
     last_updated: '2023-01-01T00:00:00Z',
-    resources: ['Food', 'Water', 'Medical', 'Beds'],
-    resources_available: ['Food', 'Water', 'Medical', 'Beds'],
+    resources: ['Food', 'Water', 'Medical', 'Beds', 'Other'],
+    resources_available: ['Food', 'Water', 'Medical', 'Beds', 'Other'],
     status: 'operational',
     created_at: '2023-01-01T00:00:00Z',
     user_id: '00000000-0000-0000-0000-000000000000'
@@ -28,8 +28,8 @@ export const fallbackShelterData: ShelterWithResources[] = [
     current_occupancy: 178,
     contact_phone: '(555) 987-6543',
     last_updated: '2023-01-01T00:00:00Z',
-    resources: ['Food', 'Water', 'Beds'],
-    resources_available: ['Food', 'Water', 'Beds'],
+    resources: ['Food', 'Water', 'Beds', 'Other'],
+    resources_available: ['Food', 'Water', 'Beds', 'Other'],
     status: 'operational',
     created_at: '2023-01-01T00:00:00Z',
     user_id: '00000000-0000-0000-0000-000000000000'
@@ -42,8 +42,8 @@ export const fallbackShelterData: ShelterWithResources[] = [
     current_occupancy: 112,
     contact_phone: '(555) 456-7890',
     last_updated: '2023-01-01T00:00:00Z',
-    resources: ['Food', 'Water', 'Medical', 'Beds', 'Power'],
-    resources_available: ['Food', 'Water', 'Medical', 'Beds', 'Power'],
+    resources: ['Food', 'Water', 'Medical', 'Beds', 'Power', 'Other'],
+    resources_available: ['Food', 'Water', 'Medical', 'Beds', 'Power', 'Other'],
     status: 'operational',
     created_at: '2023-01-01T00:00:00Z',
     user_id: '00000000-0000-0000-0000-000000000000'
@@ -56,8 +56,8 @@ export const fallbackShelterData: ShelterWithResources[] = [
     current_occupancy: 201,
     contact_phone: '(555) 321-7654',
     last_updated: '2023-01-01T00:00:00Z',
-    resources: ['Water', 'Beds', 'Power'],
-    resources_available: ['Water', 'Beds', 'Power'],
+    resources: ['Water', 'Beds', 'Power', 'Other'],
+    resources_available: ['Water', 'Beds', 'Power', 'Other'],
     status: 'limited',
     created_at: '2023-01-01T00:00:00Z',
     user_id: '00000000-0000-0000-0000-000000000000'
