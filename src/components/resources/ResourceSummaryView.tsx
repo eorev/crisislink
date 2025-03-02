@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Resource } from '@/lib/supabase/types';
 import ResourceBarChart from './ResourceBarChart';
 import ShelterCoverageChart from './ShelterCoverageChart';
-import AllocationEfficiencyChart from './AllocationEfficiencyChart';
-import { Cell } from 'recharts';
+import { getShelters } from '@/lib/supabase/shelters';
+import { Shelter } from '@/lib/supabase/types';
 
 interface ResourceCategory {
   category: string;
@@ -26,6 +26,21 @@ interface ResourceSummaryViewProps {
 const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps) => {
   const [resourceDetailOpen, setResourceDetailOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ResourceCategory | null>(null);
+  const [shelters, setShelters] = useState<Shelter[]>([]);
+
+  // Fetch shelters for displaying proper shelter counts
+  useEffect(() => {
+    const fetchShelters = async () => {
+      try {
+        const shelterData = await getShelters();
+        setShelters(shelterData);
+      } catch (error) {
+        console.error('Error fetching shelters:', error);
+      }
+    };
+    
+    fetchShelters();
+  }, []);
 
   // Function to get color for a category
   function getColorForCategory(category: string) {
@@ -38,6 +53,40 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
       default: return '#6B5CA5';
     }
   }
+
+  // Count resources by shelter
+  const getResourceDistribution = () => {
+    const shelterResourceMap = new Map<number, Set<string>>();
+    
+    resources.forEach(resource => {
+      if (resource.shelter_id) {
+        if (!shelterResourceMap.has(resource.shelter_id)) {
+          shelterResourceMap.set(resource.shelter_id, new Set());
+        }
+        shelterResourceMap.get(resource.shelter_id)?.add(resource.category);
+      }
+    });
+    
+    // Calculate how many shelters have each resource category
+    const categoryToShelterCount = {
+      'Food': 0,
+      'Water': 0,
+      'Medical': 0,
+      'Beds': 0,
+      'Power': 0,
+      'Other': 0
+    };
+    
+    shelterResourceMap.forEach((categories) => {
+      categories.forEach(category => {
+        if (category in categoryToShelterCount) {
+          categoryToShelterCount[category as keyof typeof categoryToShelterCount]++;
+        }
+      });
+    });
+    
+    return categoryToShelterCount;
+  };
 
   // Group resources by category
   const resourcesByCategory = resources.reduce((acc, resource) => {
@@ -53,7 +102,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
     }
     
     acc[category].totalAmount += resource.total_amount;
-    // Count unique shelters
+    // Only count shelter-assigned resources
     if (resource.shelter_id) {
       acc[category].shelterCount++;
     }
@@ -72,6 +121,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
   }, {} as Record<string, ResourceCategory>);
 
   const resourceCategories = Object.values(resourcesByCategory);
+  const shelterResourceDistribution = getResourceDistribution();
 
   // Prepare data for ResourceBarChart
   const chartData = resourceCategories.map(category => ({
@@ -80,11 +130,25 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
   }));
 
   // Prepare data for ShelterCoverageChart
-  const shelterCoverageData = resourceCategories.map(category => ({
-    name: category.category,
-    value: category.shelterCount,
-    color: getColorForCategory(category.category)
-  }));
+  const shelterCoverageData = Object.entries(shelterResourceDistribution).map(([category, count]) => ({
+    name: category,
+    value: count,
+    color: getColorForCategory(category)
+  })).filter(item => item.name !== 'Other' || item.value > 0);
+
+  // Prepare data for ResourceDistributionChart (replacing ResourceAllocationEfficiencyChart)
+  const resourceDistributionData = shelters.map(shelter => {
+    const shelterResources = resources.filter(r => r.shelter_id === shelter.id);
+    const totalResourcesCount = shelterResources.reduce((sum, r) => sum + r.total_amount, 0);
+    const categoryCount = new Set(shelterResources.map(r => r.category)).size;
+    
+    return {
+      name: shelter.name.length > 15 ? shelter.name.substring(0, 15) + '...' : shelter.name,
+      resourceCount: totalResourcesCount,
+      categoryCount: categoryCount,
+      occupancyRate: Math.round((shelter.current_occupancy / (shelter.capacity || 1)) * 100)
+    };
+  }).sort((a, b) => b.resourceCount - a.resourceCount).slice(0, 5); // Top 5 shelters
 
   const openResourceDetail = (category: ResourceCategory) => {
     setSelectedCategory(category);
@@ -123,7 +187,7 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
                 <Package className="h-5 w-5 text-gray-500" />
               </CardTitle>
               <CardDescription>
-                Distributed across {category.shelterCount} shelters
+                Distributed across {shelterResourceDistribution[category.category as keyof typeof shelterResourceDistribution]} shelters
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -167,18 +231,38 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
 
         <Card className="col-span-1 md:col-span-2">
           <CardHeader>
-            <CardTitle>Resource Allocation Efficiency</CardTitle>
-            <CardDescription>Comparing allocated resources to capacity and needs</CardDescription>
+            <CardTitle>Resource Distribution by Shelter</CardTitle>
+            <CardDescription>Top 5 shelters by resource count and diversity</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <AllocationEfficiencyChart 
-              data={resourceCategories.map(category => ({
-                name: category.category,
-                allocated: category.totalAmount,
-                capacity: category.totalAmount * 1.5, // Example data
-                needs: category.totalAmount * 0.8    // Example data
-              }))}
-            />
+            <div className="w-full h-full">
+              {resourceDistributionData.length > 0 ? (
+                <div className="space-y-4">
+                  {resourceDistributionData.map((item, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="font-medium">{item.name}</span>
+                        <span>{item.resourceCount.toLocaleString()} resources</span>
+                      </div>
+                      <div className="w-full bg-gray-200 h-2 rounded-full">
+                        <div 
+                          className="bg-blue-500 h-2 rounded-full" 
+                          style={{ width: `${Math.min(100, (item.resourceCount / (resourceDistributionData[0]?.resourceCount || 1)) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{item.categoryCount} categories</span>
+                        <span>{item.occupancyRate}% occupancy</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-500">No shelter data available</p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -204,14 +288,17 @@ const ResourceSummaryView = ({ resources, isLoading }: ResourceSummaryViewProps)
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {selectedCategory.resources.map((resource) => (
-                      <tr key={resource.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">{resource.name}</td>
-                        <td className="px-4 py-3">{resource.total_amount} {resource.unit}</td>
-                        <td className="px-4 py-3">{resource.shelter_id ? 'Shelter #' + resource.shelter_id : 'Central Storage'}</td>
-                        <td className="px-4 py-3">{new Date(resource.last_updated).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
+                    {selectedCategory.resources.map((resource) => {
+                      const shelterName = shelters.find(s => s.id === resource.shelter_id)?.name || 'Central Storage';
+                      return (
+                        <tr key={resource.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3">{resource.name}</td>
+                          <td className="px-4 py-3">{resource.total_amount} {resource.unit}</td>
+                          <td className="px-4 py-3">{shelterName}</td>
+                          <td className="px-4 py-3">{new Date(resource.last_updated).toLocaleDateString()}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
